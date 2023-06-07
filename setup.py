@@ -21,8 +21,10 @@ requirements = [
 ]
 
 test_requirements = [
-    'ipython'
+    'flake8',
+    'ipython',
     'pytest',
+    'tox',
 ]
 
 setup(
@@ -35,13 +37,12 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
     ],
-    description='Excel spreadsheet crawler and table parser for data extraction and querying',
+    description='''
+    Excel spreadsheet crawler and table parser for data extraction and querying
+    ''',
     entry_points={
         'console_scripts': [
             'eparse=eparse.cli:entry_point',

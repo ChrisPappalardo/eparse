@@ -91,7 +91,7 @@ def main(ctx, input, output, debug, loose, recursive, truncate, verbose):
     try:
         m = importlib.import_module('eparse.interfaces')
         ctx.obj['output_fcn'] = getattr(m, output)
-    except AttributeError as e:
+    except AttributeError:
         print(f'output error - there is no {output}')
         if ctx.obj['debug']:
             raise
@@ -320,10 +320,10 @@ def query(ctx, input, filter, method):
         m = importlib.import_module('eparse.interfaces')
         ctx.obj['input_fcn'] = getattr(m, ctx.obj['input_fcn'])
 
-    except AttributeError as e:
+    except AttributeError:
         print(f'input error - there is no {ctx.obj["input_fcn"]}')
         if ctx.obj['debug']:
-            raise(e)
+            raise
         sys.exit(1)
 
     if ctx.obj['debug']:

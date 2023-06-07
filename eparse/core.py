@@ -30,9 +30,9 @@ def df_find_tables(df: pd.DataFrame, loose=False) -> List[TableRef]:
     for r in range(df.shape[0]):
         # for each col
         for c in range(df.shape[1]):
-            isna_left = True if c == 0 else pd.isna(df.at[r,(c-1)])
+            isna_left = True if c == 0 else pd.isna(df.at[r, (c-1)])
             isna_above = True if r == 0 else pd.isna(df.at[(r-1), c])
-            isna_value = pd.isna(df.at[r,c])
+            isna_value = pd.isna(df.at[r, c])
 
             try:
                 isna_right = pd.isna(df.at[r, (c+1)])
@@ -54,7 +54,7 @@ def df_find_tables(df: pd.DataFrame, loose=False) -> List[TableRef]:
                         not isna_corner,
                     ])
 
-            except:
+            except Exception:
                 min_size = False
 
             if all([isna_left, isna_above, not isna_value, min_size]):
@@ -79,7 +79,7 @@ def _is_rowspan(df: pd.DataFrame, r: int, c: int) -> bool:
 
         return isna_down and not isna_right
 
-    except KeyError as e:
+    except KeyError:
         return False
 
 
@@ -94,7 +94,7 @@ def _has_empty_corner(df: pd.DataFrame, r: int, c: int) -> bool:
 
         return isna_above and not isna_up_corner
 
-    except KeyError as e:
+    except KeyError:
         return False
 
 
@@ -102,7 +102,7 @@ def df_parse_table(
         df: pd.DataFrame,
         r: int,
         c: int,
-    ) -> pd.DataFrame:
+        ) -> pd.DataFrame:
     '''
     extract a table from a dataframe for a given r, c position
     '''
@@ -136,13 +136,13 @@ def df_parse_table(
 def df_serialize_table(
         df: pd.DataFrame,
         **other_data,
-    ) -> List[Dict]:
+        ) -> List[Dict]:
     '''
     serialize table into a list of dicts with meta data
     '''
 
     column_header = df.iloc[0]
-    row_header = df.iloc[:,0]
+    row_header = df.iloc[:, 0]
 
     result = []
 

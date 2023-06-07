@@ -102,8 +102,8 @@ def to_sqlite3(data, ctx, *args, **kwargs):
     # this output handler requires parse -z to work
     try:
         assert ctx.obj['serialize']
-    except:
-        raise Exception(f'serialize required for this interface')
+    except Exception:
+        raise Exception('serialize required for this interface')
 
     # create database if none was supplied
     if not SQLITE3_DATABASE:

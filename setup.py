@@ -14,10 +14,10 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read()
 
 requirements = [
-    'click>=8.1.3',
-    'openpyxl>=3.1.2',
-    'pandas>=2.0.1',
-    'peewee>=3.16.2',
+    'click>=8.0.0',
+    'openpyxl>=3.0.0',
+    'pandas>=2.0.0',
+    'peewee>=3.16.0',
 ]
 
 test_requirements = [

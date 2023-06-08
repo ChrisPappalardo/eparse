@@ -124,7 +124,7 @@ with the following command:
 
 eparse uses `pandas <https://github.com/pandas-dev/pandas>`_
 to handle table data.  You can view larger tables without truncation
-using the :bash:`-t` flag as follows:
+using the ``-t`` flag as follows:
 
 .. code-block:: bash
 
@@ -132,7 +132,7 @@ using the :bash:`-t` flag as follows:
 
 Data in table format is useful for human viewing, but a serialized
 form is better for data interfacing.  Serialize your output with
-the :bash:`-z` flag as follows:
+the ``-z`` flag as follows:
 
 .. code-block:: bash
 

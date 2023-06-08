@@ -30,7 +30,7 @@ test_requirements = [
 setup(
     author='Chris Pappalardo',
     author_email='cpappala@gmail.com',
-    python_requires='>=3.6',
+    python_requires='>=3.9',
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Intended Audience :: Developers',

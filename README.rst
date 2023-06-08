@@ -140,15 +140,15 @@ the :bash:`-z` flag as follows:
 
 Each cell of extracted table data is serialized as follows:
 
-* row - 0-indexed table row number
-* column - 0-indexed table column number
-* value - the value of the cell as a ``str``
-* type - the implied python ``type`` of the data found
-* c_header - the column header
-* r_header - the row header
-* excel_RC - the RC reference from the spreadsheet (e.g. B10)
-* sheet - the name of the sheet
-* f_name - the name of the file
+* `row` - 0-indexed table row number
+* `column` - 0-indexed table column number
+* `value` - the value of the cell as a ``str``
+* `type` - the implied python ``type`` of the data found
+* `c_header` - the column header
+* `r_header` - the row header
+* `excel_RC` - the RC reference from the spreadsheet (e.g. B10)
+* `sheet` - the name of the sheet
+* `f_name` - the name of the file
 
 to_sqlite3
 ^^^^^^^^^^

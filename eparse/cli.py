@@ -5,6 +5,7 @@ excel parser cli module
 '''
 
 import click
+from collections.abc import Iterable
 import importlib
 from pathlib import Path
 from pprint import PrettyPrinter
@@ -14,6 +15,27 @@ import sys
 import pandas as pd
 
 from .core import df_find_tables, df_parse_table, df_serialize_table
+from .interfaces import parse_uri
+
+
+def handle(e, exceptions=None, msg=None, debug=False, exit=True):
+    '''
+    handle exceptions based on settings
+    '''
+
+    if msg is None:
+        msg = f'an error occurred - {e}'
+
+    if exceptions and not isinstance(exceptions, Iterable):
+        exceptions = [exceptions]
+
+    if exceptions is None or type(e) in exceptions:
+        print(msg)
+
+        if debug:
+            raise e
+        elif exit:
+            sys.exit(1)
 
 
 @click.group()
@@ -27,7 +49,7 @@ from .core import df_find_tables, df_parse_table, df_serialize_table
 @click.option(
     '--output', '-o',
     type=str,
-    default='to_null',
+    default='null:///',
     help='output destination',
 )
 @click.option(
@@ -59,7 +81,16 @@ from .core import df_find_tables, df_parse_table, df_serialize_table
     count=True,
     help='increase output verbosity',
 )
-def main(ctx, input, output, debug, loose, recursive, truncate, verbose):
+def main(
+    ctx,
+    input,
+    output,
+    debug,
+    loose,
+    recursive,
+    truncate,
+    verbose,
+):
     '''
     excel parser
     '''
@@ -90,12 +121,12 @@ def main(ctx, input, output, debug, loose, recursive, truncate, verbose):
     # set output function
     try:
         m = importlib.import_module('eparse.interfaces')
-        ctx.obj['output_fcn'] = getattr(m, output)
-    except AttributeError:
-        print(f'output error - there is no {output}')
-        if ctx.obj['debug']:
-            raise
-        sys.exit(1)
+        ctx.obj['output_kwargs'] = parse_uri(output)
+        ctx.obj['output_fcn'] = getattr(
+            m, f'to_{ctx.obj["output_kwargs"]["endpoint"]}'
+        )
+    except Exception as e:
+        handle(e, AttributeError, f'there is no {output}', debug)
 
     # set truncate option
     if not truncate:
@@ -144,10 +175,9 @@ def scan(ctx, number, sheet, tables):
                     f, sheet_name=sheet, header=None, index_col=None
                 )
             except Exception as e:
-                print(f'skipping {f} due to {e}')
-                if not ctx.obj['debug']:
-                    continue
-                raise
+                msg = f'skipping {f} - {e}'
+                handle(e, msg=msg, debug=ctx.obj['debug'], exit=False)
+                continue
 
             # get basic info about Excel file
             f_size_mb = f.stat().st_size / 1_024_000
@@ -234,10 +264,9 @@ def parse(ctx, sheet, serialize, table):
                     index_col=None,
                 )
             except Exception as e:
-                print(f'skipping {f} due to {e}')
-                if not ctx.obj['debug']:
-                    continue
-                raise
+                msg = f'skipping {f} - {e}'
+                handle(e, msg=msg, debug=ctx.obj['debug'], exit=False)
+                continue
 
             if not ctx.obj['verbose']:
                 print(f'{f.name}')
@@ -278,10 +307,9 @@ def parse(ctx, sheet, serialize, table):
                     try:
                         ctx.obj['output_fcn'](output, ctx)
                     except Exception as e:
-                        print(f'output {ctx.obj["output"]} failed with {e}')
-                        if not ctx.obj['debug']:
-                            continue
-                        raise
+                        msg = f'output {ctx.obj["output"]} failed - {e}'
+                        handle(e, msg=msg, debug=ctx.obj['debug'], exit=False)
+                        continue
 
 
 @main.command()
@@ -319,12 +347,9 @@ def query(ctx, input, filter, method):
     try:
         m = importlib.import_module('eparse.interfaces')
         ctx.obj['input_fcn'] = getattr(m, ctx.obj['input_fcn'])
-
-    except AttributeError:
-        print(f'input error - there is no {ctx.obj["input_fcn"]}')
-        if ctx.obj['debug']:
-            raise
-        sys.exit(1)
+    except AttributeError as e:
+        msg = f'input error - there is no {ctx.obj["input_fcn"]}'
+        handle(e, AttributeError, msg, ctx.obj['debug'])
 
     if ctx.obj['debug']:
         PrettyPrinter().pprint(ctx.obj)
@@ -346,19 +371,14 @@ def query(ctx, input, filter, method):
     try:
         data = m(**kwargs)
     except Exception as e:
-        print(f'an error occurred: {e}')
-        if ctx.obj['debug']:
-            raise
-        sys.exit(1)
+        handle(e, msg=f'an error occurred: {e}', debug=ctx.obj['debug'])
 
     # output data
     try:
         ctx.obj['output_fcn'](data, ctx)
     except Exception as e:
-        print(f'output {ctx.obj["output"]} failed with {e}')
-        if ctx.obj['debug']:
-            raise
-        sys.exit(1)
+        msg = f'output {ctx.obj["output"]} failed with {e}'
+        handle(e, msg=msg, debug=ctx.obj['debug'])
 
 
 @main.command()
@@ -389,12 +409,9 @@ def migrate(ctx, input, migration):
     try:
         m = importlib.import_module('eparse.interfaces')
         ctx.obj['input_fcn'] = getattr(m, ctx.obj['input_fcn'])
-
-    except AttributeError:
-        print(f'input error - there is no {ctx.obj["input_fcn"]}')
-        if ctx.obj['debug']:
-            raise
-        sys.exit(1)
+    except AttributeError as e:
+        msg = f'input error - there is no {ctx.obj["input_fcn"]}'
+        handle(e, msg=msg, debug=ctx.obj['debug'])
 
     if ctx.obj['debug']:
         PrettyPrinter().pprint(ctx.obj)
@@ -407,21 +424,15 @@ def migrate(ctx, input, migration):
         try:
             m = importlib.import_module('eparse.migrations')
             migration_fcn = getattr(m, _migration)
-
-        except AttributeError:
-            print(f'migration error - there is no {_migration}')
-            if ctx.obj['debug']:
-                raise
-            sys.exit(1)
+        except AttributeError as e:
+            msg = f'migration error - there is no {_migration}'
+            handle(e, AttributeError, msg, ctx.obj['debug'])
 
         # call migration function on model
         try:
             migration_fcn(model)
         except Exception as e:
-            print(f'migration error - {e}')
-            if ctx.obj['debug']:
-                raise
-            sys.exit(1)
+            handle(e, msg=f'migration error - {e}', debug=ctx.obj['debug'])
 
         print(f'Applied {_migration}')
 

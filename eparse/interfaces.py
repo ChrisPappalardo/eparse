@@ -6,6 +6,7 @@ excel parser interfaces
 
 from datetime import datetime
 from pprint import PrettyPrinter
+import re
 from uuid import uuid4
 
 import pandas as pd
@@ -76,6 +77,15 @@ class ExcelParse(Model):
         indexes = (
             (('f_name', 'sheet', 'name'), False),
         )
+
+
+def parse_uri(db_str):
+    '''
+    parse eparse URI string
+    '''
+
+    patt = r'^(?P<endpoint>.*)://(?P<user>.*?)(:(?P<password>.*?))?(@(?P<host>.*?)(:(?P<port>.*?))?)?/(?P<name>.*)?$'  # noqa
+    return re.match(patt, db_str).groupdict()
 
 
 def to_null(*args, **kwargs):

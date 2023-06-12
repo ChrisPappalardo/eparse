@@ -361,6 +361,71 @@ def query(ctx, input, filter, method):
         sys.exit(1)
 
 
+@main.command()
+@click.pass_context
+@click.option(
+    '--input', '-i',
+    required=True,
+    type=str,
+    nargs=2,
+    help='eparse data source',
+)
+@click.option(
+    '--migration', '-m',
+    required=True,
+    type=str,
+    multiple=True,
+    help='database migration(s) to apply',
+)
+def migrate(ctx, input, migration):
+    '''
+    migrate eparse table
+    '''
+
+    ctx.obj['input_fcn'], ctx.obj['input_src'] = input
+    ctx.obj['migration'] = migration
+
+    # set input function
+    try:
+        m = importlib.import_module('eparse.interfaces')
+        ctx.obj['input_fcn'] = getattr(m, ctx.obj['input_fcn'])
+
+    except AttributeError:
+        print(f'input error - there is no {ctx.obj["input_fcn"]}')
+        if ctx.obj['debug']:
+            raise
+        sys.exit(1)
+
+    if ctx.obj['debug']:
+        PrettyPrinter().pprint(ctx.obj)
+
+    # get model from input factory
+    model = ctx.obj['input_fcn'](ctx.obj['input_src'])
+
+    # apply migrations
+    for _migration in ctx.obj['migration']:
+        try:
+            m = importlib.import_module('eparse.migrations')
+            migration_fcn = getattr(m, _migration)
+
+        except AttributeError:
+            print(f'migration error - there is no {_migration}')
+            if ctx.obj['debug']:
+                raise
+            sys.exit(1)
+
+        # call migration function on model
+        try:
+            migration_fcn(model)
+        except Exception as e:
+            print(f'migration error - {e}')
+            if ctx.obj['debug']:
+                raise
+            sys.exit(1)
+
+        print(f'Applied {_migration}')
+
+
 def entry_point():
     '''
     required to make setuptools and click play nicely (context object)

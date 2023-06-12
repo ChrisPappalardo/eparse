@@ -4,6 +4,7 @@
 excel parser interfaces
 '''
 
+from datetime import datetime
 from pprint import PrettyPrinter
 from uuid import uuid4
 
@@ -12,6 +13,7 @@ from peewee import (
     AutoField,
     CharField,
     DatabaseProxy,
+    DateTimeField,
     fn,
     IntegerField,
     Model,
@@ -33,12 +35,13 @@ class ExcelParse(Model):
     column = IntegerField()
     value = CharField()
     type = CharField()
-    c_header = CharField()
-    r_header = CharField()
-    excel_RC = CharField()
-    name = CharField()
-    sheet = CharField()
-    f_name = CharField()
+    c_header = CharField(index=True)
+    r_header = CharField(index=True)
+    excel_RC = CharField(index=True)
+    name = CharField(index=True)
+    sheet = CharField(index=True)
+    f_name = CharField(index=True)
+    timestamp = DateTimeField(default=datetime.utcnow)
 
     @classmethod
     def get_queryset(cls, *args, **kwargs):
@@ -70,6 +73,9 @@ class ExcelParse(Model):
 
     class Meta:
         database = DATABASE
+        indexes = (
+            (('f_name', 'sheet', 'name'), False),
+        )
 
 
 def to_null(*args, **kwargs):

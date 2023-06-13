@@ -104,23 +104,23 @@ corners and the dense vs. sparse criterion can be controlled with
 the ``--loose`` flag.
 
 eparse was written to accomodate various types of output formats and
-endpoints, including ``to_null``, ``to_stdout``, and ``to_sqlite3``.
+endpoints, including ``null:///``, ``stdout:///``, and ``sqlite3:///``.
 
-to_null
-^^^^^^^
+null
+^^^^
 This mode is useful for validating files and generating descriptive
 info, and is the default.  The command above with `-v` is an example
 of this mode, which lists out the tables found.
 
-to_stdout
-^^^^^^^^^
+stdout
+^^^^^^
 This mode is good for viewing data extracted from Excel files in the
 console.  For example, you could view all tables found in `Sheet1`
 with the following command:
 
 .. code-block:: bash
 
-    $ eparse -i <path_to_files> -o to_stdout parse -s "Sheet1"
+    $ eparse -i <path_to_files> -o stdout:/// parse -s "Sheet1"
 
 eparse uses `pandas <https://github.com/pandas-dev/pandas>`_
 to handle table data.  You can view larger tables without truncation
@@ -128,7 +128,7 @@ using the ``-t`` flag as follows:
 
 .. code-block:: bash
 
-    $ eparse -t -i <path_to_files> -o to_stdout parse -s "Sheet1"
+    $ eparse -t -i <path_to_files> -o stdout:/// parse -s "Sheet1"
 
 Data in table format is useful for human viewing, but a serialized
 form is better for data interfacing.  Serialize your output with
@@ -136,7 +136,7 @@ the ``-z`` flag as follows:
 
 .. code-block:: bash
 
-    $ eparse -t -i <path_to_files> -o to_stdout parse -z
+    $ eparse -t -i <path_to_files> -o stdout:/// parse -z
 
 Each cell of extracted table data is serialized as follows:
 
@@ -150,8 +150,8 @@ Each cell of extracted table data is serialized as follows:
 * `sheet` - the name of the sheet
 * `f_name` - the name of the file
 
-to_sqlite3
-^^^^^^^^^^
+sqlite3
+^^^^^^^
 eparse uses the `peewee <https://github.com/coleifer/peewee>`_
 package for ORM and database integration.  The
 `interfaces <eparse/interfaces.py>`_ module contains an
@@ -164,7 +164,7 @@ with your parsed Excel data, use the following command:
 .. code-block:: bash
 
     $ mkdir .files
-    $ eparse -i <path_to_files> -o to_sqlite3 parse
+    $ eparse -i <path_to_files> -o sqlite3:/// parse
 
 This command will automatically generate a unique database filename
 using the ``uuid`` python package in the ``.files/`` sub-directory
@@ -183,7 +183,7 @@ For example, query distinct column header names from a generated
 
 .. code-block:: bash
 
-    $ eparse -o to_stdout query -i from_sqlite3 .files/<db_file> -m get_c_header
+    $ eparse -o stdout:/// query -i from_sqlite3 .files/<db_file> -m get_c_header
                    c_header  Total Rows  Data Types  Distinct Values
       0             ABC-col         150           2               76
       1             DEF-col        3981           3               15
@@ -198,14 +198,14 @@ behavior:
 
 .. code-block:: bash
 
-    $ eparse -t -o to_stdout query -i from_sqlite3 .files/<db_file>
+    $ eparse -t -o stdout:/// query -i from_sqlite3 .files/<db_file>
 
 Filtering data on content is easy.  Use the ``--filter`` option as
 follows:
 
 .. code-block:: bash
 
-    $ eparse -t -o to_stdout query -i from_sqlite3 .files/<db_file> --filter f_name "somefile.xlsx"
+    $ eparse -t -o stdout:/// query -i from_sqlite3 .files/<db_file> --filter f_name "somefile.xlsx"
 
 The above command will filter all rows from an Excel file named
 `somefile.xlsx`. You can use any of the following ``django``-style
@@ -234,9 +234,9 @@ curated data subsets, as follows:
 
 .. code-block:: bash
 
-    $ eparse -t -o to_sqlite3 query -i from_sqlite3 .files/<db_file>
+    $ eparse -t -o sqlite3:/// query -i from_sqlite3 .files/<db_file>
 
-Since database files the tool generates when using `to_sqlite3` are
+Since database files the tool generates when using `sqlite3:///` are
 ``SQLite`` native, you can also use `SQLite` database client tools
 and execute raw SQL like so:
 

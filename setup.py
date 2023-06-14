@@ -33,7 +33,8 @@ setup(
     python_requires='>=3.9',
     classifiers=[
         'Development Status :: 4 - Beta',
-        'Intended Audience :: Developers, End Users/Desktop',
+        'Intended Audience :: Developers',
+        'Intended Audience :: End Users/Desktop',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
@@ -58,6 +59,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/ChrisPappalardo/eparse',
-    version='0.4.0',
+    version='0.4.1',
     zip_safe=False,
 )

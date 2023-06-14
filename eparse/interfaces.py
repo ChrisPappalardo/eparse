@@ -4,9 +4,12 @@
 excel parser interfaces
 '''
 
+from abc import abstractmethod
+from collections.abc import Iterable, Mapping
 from datetime import datetime
 from pprint import PrettyPrinter
 import re
+from typing import Dict, Optional
 from uuid import uuid4
 
 import pandas as pd
@@ -23,7 +26,6 @@ from peewee import (
 
 
 DATABASE = DatabaseProxy()
-SQLITE3_DATABASE = ''
 
 
 class ExcelParse(Model):
@@ -79,77 +81,135 @@ class ExcelParse(Model):
         )
 
 
-def parse_uri(db_str):
+class BaseInterface:
     '''
-    parse eparse URI string
-    '''
-
-    patt = r'^(?P<endpoint>.*)://(?P<user>.*?)(:(?P<password>.*?))?(@(?P<host>.*?)(:(?P<port>.*?))?)?/(?P<name>.*)?$'  # noqa
-    return re.match(patt, db_str).groupdict()
-
-
-def to_null(*args, **kwargs):
-    '''
-    do nothing with parse data
+    base interface class
     '''
 
-    pass
+    endpoint = ''
+    user = ''
+    password = ''
+    host = ''
+    port = 0
+    name = ''
+
+    Model = None
+
+    def __init__(self, uri: str, Model: Optional[Model]=None):
+        for k, v in self.parse_uri(uri).items():
+            setattr(self, k, v)
+        self.Model = Model
+
+    @abstractmethod
+    def input(self):
+        '''
+        from_X override with input handler
+        '''
+
+        pass
+
+    @abstractmethod
+    def output(self, data: pd.DataFrame, obj: Dict) -> pd.DataFrame:
+        '''
+        to_X override with output handler
+        '''
+
+        pass
+
+    @classmethod
+    def parse_uri(self, uri: str) -> Dict:
+        '''
+        parse eparse URI string
+        '''
+
+        patt = r'^(?P<endpoint>.*)://(?P<user>.*?)(:(?P<password>.*?))?(@(?P<host>.*?)(:(?P<port>.*?))?)?/(?P<name>.*)?$'  # noqa
+        return re.match(patt, uri).groupdict()
 
 
-def to_stdout(data, *args, pretty=True, **kwargs):
+class NullInterface(BaseInterface):
     '''
-    print parse data to stdout
+    null interface
     '''
 
-    if pretty:
+    def input(self):
+        return pd.DataFrame()
+
+    def output(self, *args, **kwargs):
+        pass
+
+
+class StdoutInterface(BaseInterface):
+    '''
+    stdout interface
+    '''
+
+    def input(self):
+        return pd.DataFrame()
+
+    def output(self, data, *args, **kwargs):
         PrettyPrinter().pprint(data)
-    else:
-        print(data)
 
 
-def to_sqlite3(data, ctx, *args, **kwargs):
+class Sqlite3Interface(BaseInterface):
     '''
-    inject parse data into sqlite3 database
+    sqlite3 interface
     '''
 
-    global DATABASE
-    global SQLITE3_DATABASE
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-    # this output handler requires parse -z to work
-    try:
-        assert ctx.obj['serialize']
-    except Exception:
-        raise Exception('serialize required for this interface')
+        if not self.name:
+            self.name = f'.files/{uuid4()}.db'
 
-    # create database if none was supplied
-    if not SQLITE3_DATABASE:
-        SQLITE3_DATABASE = f'.files/{uuid4()}.db'
+    def input(self, method, **kwargs):
+        m = getattr(self.Model, method, None)
 
-    DATABASE.initialize(SqliteDatabase(SQLITE3_DATABASE))
-    DATABASE.connect()
-    DATABASE.create_tables([ExcelParse])
+        # if no explicit method is available, try get_column
+        if m is None:
+            m = self.Model.get_column
+            patt = r'^(?:get_)?(?P<column>.*)$'
+            kwargs['column'] = re.match(patt, method).group('column')
 
-    # insert data into parse table
-    for d in data:
-        ExcelParse.create(**d)
+        DATABASE.initialize(SqliteDatabase(self.name))
+        DATABASE.connect()
 
-    DATABASE.close()
+        return m(**kwargs)
+
+    def output(self, data, obj):
+        # skip empty data
+        if hasattr(data, 'empty') and data.empty:
+            return
+        elif not hasattr(data, 'empty') and not data:
+            return
+
+        # check that data is serialized
+        try:
+            assert isinstance(data, Iterable)
+            assert isinstance(data[0], Mapping)
+        except:
+            raise ValueError('bad data - did you serialize it first?')
+
+        DATABASE.initialize(SqliteDatabase(self.name))
+        DATABASE.connect()
+        DATABASE.create_tables([self.Model])
+
+        # insert data into Model
+        for d in data:
+            self.Model.create(**d)
+
+        # DATABASE.close()
 
 
-def to_api(data, *args, **kwargs):
+def i_factory(uri, Model=None):
     '''
-    post parse data to API endpoint
+    return interface object based on uri
     '''
 
-    pass
+    if uri.startswith('null'):
+        return NullInterface(uri)
+    elif uri.startswith('stdout'):
+        return StdoutInterface(uri)
+    elif uri.startswith('sqlite3'):
+        return Sqlite3Interface(uri, Model)
 
-
-def from_sqlite3(db):
-    '''
-    factory to return ExcelParse model from sqlite3 db
-    '''
-
-    DATABASE.initialize(SqliteDatabase(db))
-    DATABASE.connect()
-
-    return ExcelParse
+    raise ValueError(f'{uri} is not a recognized endpoint')

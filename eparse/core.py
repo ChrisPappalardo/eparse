@@ -133,6 +133,31 @@ def df_parse_table(
     return df.iloc[r:_r, c:_c]
 
 
+def df_normalize_data(data: Dict) -> Dict:
+    '''
+    normalize table data
+    '''
+
+    result = {}
+    ints = ('row', 'column')
+    strs = ('value', 'type', 'c_header', 'r_header', 'excel_RC',
+            'name', 'sheet', 'f_name')
+
+    for k in ints:
+        if k in data:
+            result[k] = int(data[k])
+
+    for k in strs:
+        if k in data:
+            result[k] = str(data[k])
+
+    if 'timestamp' in data:
+        if isinstance(data['timestamp'], pd.Timestamp):
+            result['timestamp'] = data['timestamp'].to_pydatetime()
+
+    return result
+
+
 def df_serialize_table(
         df: pd.DataFrame,
         **other_data,
@@ -150,15 +175,17 @@ def df_serialize_table(
         for c in range(df.shape[1]):
             _r = df.index[r]  # excel df row
             _c = df.columns[c]  # excel df col
-            result.append({
-                'row': int(r),
-                'column': int(c),
-                'value': str(df.iloc[r, c]),
-                'type': str(type(df.iloc[r, c])),
-                'c_header': str(column_header.iloc[c]),
-                'r_header': str(row_header.iloc[r]),
-                'excel_RC': f'{get_column_letter(_c+1)}{_r+1}',
-                **other_data,
-            })
+            result.append(
+                df_normalize_data({
+                    'row': r,
+                    'column': c,
+                    'value': df.iloc[r, c],
+                    'type': type(df.iloc[r, c]),
+                    'c_header': column_header.iloc[c],
+                    'r_header': row_header.iloc[r],
+                    'excel_RC': f'{get_column_letter(_c+1)}{_r+1}',
+                    **other_data,
+                })
+            )
 
     return result

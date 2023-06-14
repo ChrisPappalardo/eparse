@@ -9,13 +9,17 @@ from collections.abc import Iterable
 import importlib
 from pathlib import Path
 from pprint import PrettyPrinter
-import re
 import sys
 
 import pandas as pd
 
-from .core import df_find_tables, df_parse_table, df_serialize_table
-from .interfaces import parse_uri
+from .core import (
+    df_find_tables,
+    df_parse_table,
+    df_normalize_data,
+    df_serialize_table,
+)
+from .interfaces import ExcelParse, i_factory
 
 
 def handle(e, exceptions=None, msg=None, debug=False, exit=True):
@@ -43,14 +47,20 @@ def handle(e, exceptions=None, msg=None, debug=False, exit=True):
 @click.option(
     '--input', '-i',
     type=str,
-    multiple=True,
-    help='input dir(s) or file(s)',
+    default='null:///',
+    help='input source',
 )
 @click.option(
     '--output', '-o',
     type=str,
     default='null:///',
     help='output destination',
+)
+@click.option(
+    '--file', '-f',
+    type=str,
+    multiple=True,
+    help='file(s) or dir(s) to target',
 )
 @click.option(
     '--debug', '-d',
@@ -85,6 +95,7 @@ def main(
     ctx,
     input,
     output,
+    file,
     debug,
     loose,
     recursive,
@@ -97,6 +108,7 @@ def main(
 
     ctx.obj['input'] = input
     ctx.obj['output'] = output
+    ctx.obj['file'] = file
     ctx.obj['debug'] = debug
     ctx.obj['loose'] = loose
     ctx.obj['recursive'] = recursive
@@ -106,7 +118,7 @@ def main(
     files = []
 
     # get target file(s)
-    for i in input:
+    for i in file:
         if Path(i).is_dir():
             g = '**/*' if recursive else '*'
             files += Path(i).glob(g)
@@ -118,15 +130,12 @@ def main(
     if ctx.obj['verbose']:
         print(f'found {len(files)} files')
 
-    # set output function
-    try:
-        m = importlib.import_module('eparse.interfaces')
-        ctx.obj['output_kwargs'] = parse_uri(output)
-        ctx.obj['output_fcn'] = getattr(
-            m, f'to_{ctx.obj["output_kwargs"]["endpoint"]}'
-        )
-    except Exception as e:
-        handle(e, AttributeError, f'there is no {output}', debug)
+    # get input and output objects
+    for t in ('input', 'output'):
+        try:
+            ctx.obj[f'{t}_obj'] = i_factory(ctx.obj[t], ExcelParse)
+        except ValueError as e:
+            handle(e, msg=f'{t} error - {e}', debug=debug)
 
     # set truncate option
     if not truncate:
@@ -305,22 +314,15 @@ def parse(ctx, sheet, serialize, table):
 
                     # output table
                     try:
-                        ctx.obj['output_fcn'](output, ctx)
+                        ctx.obj['output_obj'].output(output, ctx)
                     except Exception as e:
-                        msg = f'output {ctx.obj["output"]} failed - {e}'
+                        msg = f'output to {ctx.obj["output"]} failed - {e}'
                         handle(e, msg=msg, debug=ctx.obj['debug'], exit=False)
                         continue
 
 
 @main.command()
 @click.pass_context
-@click.option(
-    '--input', '-i',
-    required=True,
-    type=str,
-    nargs=2,
-    help='eparse data source',
-)
 @click.option(
     '--filter', '-f',
     type=str,
@@ -334,62 +336,50 @@ def parse(ctx, sheet, serialize, table):
     default='get_queryset',
     help='method to call on eparse model',
 )
-def query(ctx, input, filter, method):
+@click.option(
+    '--serialize', '-z',
+    is_flag=True,
+    default=False,
+    help='serialize query output',
+)
+def query(ctx, filter, method, serialize):
     '''
     query eparse output
     '''
 
-    ctx.obj['input_fcn'], ctx.obj['input_src'] = input
     ctx.obj['filters'] = {k: v for k, v in filter}
     ctx.obj['method'] = method
-
-    # set input function
-    try:
-        m = importlib.import_module('eparse.interfaces')
-        ctx.obj['input_fcn'] = getattr(m, ctx.obj['input_fcn'])
-    except AttributeError as e:
-        msg = f'input error - there is no {ctx.obj["input_fcn"]}'
-        handle(e, AttributeError, msg, ctx.obj['debug'])
 
     if ctx.obj['debug']:
         PrettyPrinter().pprint(ctx.obj)
 
-    # get model from input factory
-    model = ctx.obj['input_fcn'](ctx.obj['input_src'])
-
-    # call model method and output results
-    m = getattr(model, method, None)
-    kwargs = ctx.obj['filters']
-
-    # if no explicit method is available, try get_column
-    if m is None:
-        patt = r'^(?:get_)?(.*)$'
-        m = model.get_column
-        kwargs['column'] = re.match(patt, method)[1]
-
-    # call query method
+    # input data
     try:
-        data = m(**kwargs)
+        data = ctx.obj['input_obj'].input(method, **ctx.obj['filters'])
     except Exception as e:
-        handle(e, msg=f'an error occurred: {e}', debug=ctx.obj['debug'])
+        msg = f'input from {ctx.obj["input"]} failed with {e}'
+        handle(e, msg=msg, debug=ctx.obj['debug'])
+
+    if serialize:
+        try:
+            data = [
+                df_normalize_data(d)
+                for d in data.to_dict('records')
+            ]
+        except Exception as e:
+            msg = f'serialization error (some methods can\'t be serialized)'
+            handle(e, msg=f'{msg} - {e}', debug=ctx.obj['debug'])
 
     # output data
     try:
-        ctx.obj['output_fcn'](data, ctx)
+        ctx.obj['output_obj'].output(data, ctx)
     except Exception as e:
-        msg = f'output {ctx.obj["output"]} failed with {e}'
+        msg = f'output to {ctx.obj["output"]} failed with {e}'
         handle(e, msg=msg, debug=ctx.obj['debug'])
 
 
 @main.command()
 @click.pass_context
-@click.option(
-    '--input', '-i',
-    required=True,
-    type=str,
-    nargs=2,
-    help='eparse data source',
-)
 @click.option(
     '--migration', '-m',
     required=True,
@@ -397,27 +387,15 @@ def query(ctx, input, filter, method):
     multiple=True,
     help='database migration(s) to apply',
 )
-def migrate(ctx, input, migration):
+def migrate(ctx, migration):
     '''
     migrate eparse table
     '''
 
-    ctx.obj['input_fcn'], ctx.obj['input_src'] = input
     ctx.obj['migration'] = migration
-
-    # set input function
-    try:
-        m = importlib.import_module('eparse.interfaces')
-        ctx.obj['input_fcn'] = getattr(m, ctx.obj['input_fcn'])
-    except AttributeError as e:
-        msg = f'input error - there is no {ctx.obj["input_fcn"]}'
-        handle(e, msg=msg, debug=ctx.obj['debug'])
 
     if ctx.obj['debug']:
         PrettyPrinter().pprint(ctx.obj)
-
-    # get model from input factory
-    model = ctx.obj['input_fcn'](ctx.obj['input_src'])
 
     # apply migrations
     for _migration in ctx.obj['migration']:
@@ -430,11 +408,11 @@ def migrate(ctx, input, migration):
 
         # call migration function on model
         try:
-            migration_fcn(model)
+            migration_fcn(ctx.obj['input_obj'].Model)
         except Exception as e:
             handle(e, msg=f'migration error - {e}', debug=ctx.obj['debug'])
 
-        print(f'Applied {_migration}')
+        print(f'applied {_migration}')
 
 
 def entry_point():

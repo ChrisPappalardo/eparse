@@ -32,8 +32,8 @@ setup(
     author_email='cpappala@gmail.com',
     python_requires='>=3.9',
     classifiers=[
-        'Development Status :: 2 - Pre-Alpha',
-        'Intended Audience :: Developers',
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers, End Users/Desktop',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
@@ -41,7 +41,7 @@ setup(
         'Programming Language :: Python :: 3.10',
     ],
     description='''
-    Excel spreadsheet crawler and table parser for data extraction and querying
+    Excel spreadsheet crawler and table parser for data discovery, extraction, and querying
     ''',
     entry_points={
         'console_scripts': [
@@ -58,6 +58,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/ChrisPappalardo/eparse',
-    version='0.3.0',
+    version='0.4.0',
     zip_safe=False,
 )

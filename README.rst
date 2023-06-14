@@ -42,6 +42,26 @@ Or you can clone this repo and install from source:
    $ cd eparse
    $ pip install .
 
+If you plan to use the postgres interface, you also need to install
+the postgres package ``psycopg2``. Instructions can be found
+`here <https://www.psycopg.org/docs/install.html#quick-install>`_.
+This package is optional, and you can use the other interfaces
+such as the ``SQLite3`` interface without having to install
+``psycopg2``.
+
+The easiest way to install the ``psycopg2`` package for your
+particular environment may be to install the pre-compiled
+binary driver as follows:
+
+.. code-block:: bash
+
+   $ pip install psycopg2-binary
+
+If you see an error while trying to use a postgres endpoint such
+as ``postgres://user:pass@host:port/my_db`` that mentions the
+postgres driver is missing, then you know you haven't properly
+installed (and compiled)  ``psycopg2``.
+
 
 Usage
 =====
@@ -179,6 +199,26 @@ You can also specify a path and filename of your choosing, like so:
 
     $ mkdir .files
     $ eparse -f <path_to_files> -o sqlite3:///path/filename.db parse -z
+
+postgres
+^^^^^^^^
+eparse also supports `postgresql` integrations. As mentioned above,
+you will need ``psycopg2`` installed for `postgresql` integrations
+to work. The eparse ``BaseDatabaseInterface`` abstracts the
+implementation details, so you would use this interface the same
+way you use the others, with the exception of the endpoint.
+
+To use a ``postgresql`` database as the source and/or destination
+of your data, you would supply an ``--input`` and/or ``--output``
+endpoint to the tool as follows:
+
+.. code-block:: bash
+
+    $ eparse -o postgres://user:password@host:port/db_name ...
+
+Where details like ``user``, ``host``, ``port`` are provided to
+you by your db administrator. eparse will create the necessary
+table(s) and indexes for you when inserting data into the database.
 
 
 Query

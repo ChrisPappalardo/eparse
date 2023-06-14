@@ -22,6 +22,7 @@ from peewee import (
     fn,
     IntegerField,
     Model,
+    PostgresqlDatabase,
     SqliteDatabase,
 )
 
@@ -94,6 +95,7 @@ class BaseInterface:
     port = 0
     name = ''
 
+    Database = None
     Model = None
 
     def __init__(self, uri: str, Model: Optional[Model] = None):
@@ -165,16 +167,18 @@ class StdoutInterface(BaseInterface):
         pass
 
 
-class Sqlite3Interface(BaseInterface):
+class BaseDatabaseInterface(BaseInterface):
     '''
-    sqlite3 interface
+    base database interface
     '''
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    @abstractmethod
+    def initialize(self, *args, **kwargs):
+        '''
+        override with db-specific initialization
+        '''
 
-        if not self.name:
-            self.name = f'.files/{uuid4()}.db'
+        pass
 
     def input(self, method, **kwargs):
         m = getattr(self.Model, method, None)
@@ -185,7 +189,7 @@ class Sqlite3Interface(BaseInterface):
             patt = r'^(?:get_)?(?P<column>.*)$'
             kwargs['column'] = re.match(patt, method).group('column')
 
-        DATABASE.initialize(SqliteDatabase(self.name))
+        self.initialize(DATABASE)
         DATABASE.connect()
 
         return m(**kwargs)
@@ -204,7 +208,7 @@ class Sqlite3Interface(BaseInterface):
         except Exception:
             raise ValueError('bad data - did you serialize it first?')
 
-        DATABASE.initialize(SqliteDatabase(self.name))
+        self.initialize(DATABASE)
         DATABASE.connect()
         DATABASE.create_tables([self.Model])
 
@@ -222,9 +226,39 @@ class Sqlite3Interface(BaseInterface):
             msg = f'migration error - there is no {migration}'
             raise AttributeError(msg)
 
-        DATABASE.initialize(SqliteDatabase(self.name))
+        self.initialize(DATABASE)
         DATABASE.connect()
         migration_fcn(self.Model)
+
+
+class Sqlite3Interface(BaseDatabaseInterface):
+    '''
+    sqlite3 interface
+    '''
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if not self.name:
+            self.name = f'.files/{uuid4()}.db'
+
+    def initialize(self, db):
+        db.initialize(SqliteDatabase(self.name))
+
+
+class PostgresInterface(BaseDatabaseInterface):
+    '''
+    postgres interface
+    '''
+
+    def initialize(self, db):
+        db.initialize(PostgresqlDatabase(
+            self.name,
+            user=self.user,
+            password=self.password,
+            host=self.host,
+            port=self.port,
+        ))
 
 
 def i_factory(uri, Model=None):
@@ -238,5 +272,7 @@ def i_factory(uri, Model=None):
         return StdoutInterface(uri)
     elif uri.startswith('sqlite3'):
         return Sqlite3Interface(uri, Model)
+    elif uri.startswith('postgres'):
+        return PostgresInterface(uri, Model)
 
     raise ValueError(f'{uri} is not a recognized endpoint')

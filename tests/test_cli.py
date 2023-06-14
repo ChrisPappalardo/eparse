@@ -41,6 +41,13 @@ def test_query():
     assert result.output == ''
 
 
+def test_migrate():
+    runner = CliRunner()
+    result = runner.invoke(main, ['-i', 'sqlite3:///tests/test.db', 'migrate', '-m', 'migration_000102_000200'], **kwargs)
+    assert result.exit_code == 1
+    assert 'duplicate column name: timestamp' in result.output
+
+
 def test_outputs():
     runner = CliRunner()
     result = runner.invoke(main, ['-o', 'null:///', 'scan'], **kwargs)

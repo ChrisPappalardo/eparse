@@ -7,6 +7,7 @@ excel parser interfaces
 from abc import abstractmethod
 from collections.abc import Iterable, Mapping
 from datetime import datetime
+import importlib
 from pprint import PrettyPrinter
 import re
 from typing import Dict, Optional
@@ -95,7 +96,7 @@ class BaseInterface:
 
     Model = None
 
-    def __init__(self, uri: str, Model: Optional[Model]=None):
+    def __init__(self, uri: str, Model: Optional[Model] = None):
         for k, v in self.parse_uri(uri).items():
             setattr(self, k, v)
         self.Model = Model
@@ -112,6 +113,14 @@ class BaseInterface:
     def output(self, data: pd.DataFrame, obj: Dict) -> pd.DataFrame:
         '''
         to_X override with output handler
+        '''
+
+        pass
+
+    @abstractmethod
+    def migrate(self, migration: str):
+        '''
+        override with migration handler
         '''
 
         pass
@@ -137,6 +146,9 @@ class NullInterface(BaseInterface):
     def output(self, *args, **kwargs):
         pass
 
+    def migrate(self, *args, **kwargs):
+        pass
+
 
 class StdoutInterface(BaseInterface):
     '''
@@ -148,6 +160,9 @@ class StdoutInterface(BaseInterface):
 
     def output(self, data, *args, **kwargs):
         PrettyPrinter().pprint(data)
+
+    def migrate(self, *args, **kwargs):
+        pass
 
 
 class Sqlite3Interface(BaseInterface):
@@ -186,7 +201,7 @@ class Sqlite3Interface(BaseInterface):
         try:
             assert isinstance(data, Iterable)
             assert isinstance(data[0], Mapping)
-        except:
+        except Exception:
             raise ValueError('bad data - did you serialize it first?')
 
         DATABASE.initialize(SqliteDatabase(self.name))
@@ -198,6 +213,18 @@ class Sqlite3Interface(BaseInterface):
             self.Model.create(**d)
 
         # DATABASE.close()
+
+    def migrate(self, migration):
+        try:
+            m = importlib.import_module('eparse.migrations')
+            migration_fcn = getattr(m, migration)
+        except AttributeError:
+            msg = f'migration error - there is no {migration}'
+            raise AttributeError(msg)
+
+        DATABASE.initialize(SqliteDatabase(self.name))
+        DATABASE.connect()
+        migration_fcn(self.Model)
 
 
 def i_factory(uri, Model=None):

@@ -6,7 +6,6 @@ excel parser cli module
 
 import click
 from collections.abc import Iterable
-import importlib
 from pathlib import Path
 from pprint import PrettyPrinter
 import sys
@@ -367,7 +366,7 @@ def query(ctx, filter, method, serialize):
                 for d in data.to_dict('records')
             ]
         except Exception as e:
-            msg = f'serialization error (some methods can\'t be serialized)'
+            msg = 'serialization error (some methods can\'t be serialized)'
             handle(e, msg=f'{msg} - {e}', debug=ctx.obj['debug'])
 
     # output data
@@ -400,19 +399,10 @@ def migrate(ctx, migration):
     # apply migrations
     for _migration in ctx.obj['migration']:
         try:
-            m = importlib.import_module('eparse.migrations')
-            migration_fcn = getattr(m, _migration)
-        except AttributeError as e:
-            msg = f'migration error - there is no {_migration}'
-            handle(e, AttributeError, msg, ctx.obj['debug'])
-
-        # call migration function on model
-        try:
-            migration_fcn(ctx.obj['input_obj'].Model)
+            ctx.obj['input_obj'].migrate(_migration)
+            print(f'applied {_migration}')
         except Exception as e:
             handle(e, msg=f'migration error - {e}', debug=ctx.obj['debug'])
-
-        print(f'applied {_migration}')
 
 
 def entry_point():

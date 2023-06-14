@@ -64,8 +64,7 @@ class ExcelParse(Model):
         '''
 
         query = (
-            cls
-            .filter(**kwargs)
+            cls.filter(**kwargs)
             .select(
                 getattr(cls, column),
                 fn.COUNT(cls.id).alias('Total Rows'),
@@ -78,9 +77,7 @@ class ExcelParse(Model):
 
     class Meta:
         database = DATABASE
-        indexes = (
-            (('f_name', 'sheet', 'name'), False),
-        )
+        indexes = ((('f_name', 'sheet', 'name'), False),)
 
 
 class BaseInterface:
@@ -252,13 +249,15 @@ class PostgresInterface(BaseDatabaseInterface):
     '''
 
     def initialize(self, db):
-        db.initialize(PostgresqlDatabase(
-            self.name,
-            user=self.user,
-            password=self.password,
-            host=self.host,
-            port=self.port,
-        ))
+        db.initialize(
+            PostgresqlDatabase(
+                self.name,
+                user=self.user,
+                password=self.password,
+                host=self.host,
+                port=self.port,
+            )
+        )
 
 
 def i_factory(uri, Model=None):

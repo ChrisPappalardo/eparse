@@ -50,7 +50,7 @@ clean-test: ## remove test and coverage artifacts
 lint/flake8: ## check style with flake8
 	flake8 eparse tests
 lint/black: ## check style with black
-	black --check eparse tests
+	black --check -S eparse tests
 
 lint: lint/flake8 lint/black ## check style
 

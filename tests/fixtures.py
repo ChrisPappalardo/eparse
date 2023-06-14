@@ -20,7 +20,7 @@ def ctx():
     click style ctx object fixture
     '''
 
-    class Obj():
+    class Obj:
         obj = {}
 
     return Obj()

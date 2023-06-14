@@ -44,49 +44,57 @@ def handle(e, exceptions=None, msg=None, debug=False, exit=True):
 @click.group()
 @click.pass_context
 @click.option(
-    '--input', '-i',
+    '--input',
+    '-i',
     type=str,
     default='null:///',
     help='input source',
 )
 @click.option(
-    '--output', '-o',
+    '--output',
+    '-o',
     type=str,
     default='null:///',
     help='output destination',
 )
 @click.option(
-    '--file', '-f',
+    '--file',
+    '-f',
     type=str,
     multiple=True,
     help='file(s) or dir(s) to target',
 )
 @click.option(
-    '--debug', '-d',
+    '--debug',
+    '-d',
     is_flag=True,
     default=False,
     help='use debug mode',
 )
 @click.option(
-    '--loose', '-l',
+    '--loose',
+    '-l',
     is_flag=True,
     default=True,
     help='find tables loosely',
 )
 @click.option(
-    '--recursive', '-r',
+    '--recursive',
+    '-r',
     is_flag=True,
     default=False,
     help='find files recursively',
 )
 @click.option(
-    '--truncate', '-t',
+    '--truncate',
+    '-t',
     is_flag=True,
     default=True,
     help='truncate dataframe output',
 )
 @click.option(
-    '--verbose', '-v',
+    '--verbose',
+    '-v',
     count=True,
     help='increase output verbosity',
 )
@@ -145,19 +153,22 @@ def main(
 @main.command()
 @click.pass_context
 @click.option(
-    '--number', '-n',
+    '--number',
+    '-n',
     type=int,
     default=None,
     help='stop after n excel files',
 )
 @click.option(
-    '--sheet', '-s',
+    '--sheet',
+    '-s',
     type=str,
     default=None,
     help='name of sheet to scan for',
 )
 @click.option(
-    '--tables', '-t',
+    '--tables',
+    '-t',
     is_flag=True,
     default=False,
     help='count tables in scanned sheets',
@@ -177,10 +188,12 @@ def scan(ctx, number, sheet, tables):
     # process each Excel file in files
     for i, f in enumerate(ctx.obj['files']):
         if f.is_file() and 'xls' in f.name:
-
             try:
                 e_file = pd.read_excel(
-                    f, sheet_name=sheet, header=None, index_col=None
+                    f,
+                    sheet_name=sheet,
+                    header=None,
+                    index_col=None,
                 )
             except Exception as e:
                 msg = f'skipping {f} - {e}'
@@ -231,19 +244,22 @@ def scan(ctx, number, sheet, tables):
 @main.command()
 @click.pass_context
 @click.option(
-    '--sheet', '-s',
+    '--sheet',
+    '-s',
     type=str,
     multiple=True,
     help='name of sheet(s) to parse',
 )
 @click.option(
-    '--serialize', '-z',
+    '--serialize',
+    '-z',
     is_flag=True,
     default=False,
     help='serialize table output',
 )
 @click.option(
-    '--table', '-t',
+    '--table',
+    '-t',
     type=str,
     default=None,
     help='name of table to parse',
@@ -263,7 +279,6 @@ def parse(ctx, sheet, serialize, table):
     # process each Excel file in files
     for i, f in enumerate(ctx.obj['files']):
         if f.is_file() and 'xls' in f.name:
-
             try:
                 e_file = pd.read_excel(
                     f,
@@ -323,20 +338,23 @@ def parse(ctx, sheet, serialize, table):
 @main.command()
 @click.pass_context
 @click.option(
-    '--filter', '-f',
+    '--filter',
+    '-f',
     type=str,
     nargs=2,
     multiple=True,
     help='django-style filter(s) to apply to base queryset',
 )
 @click.option(
-    '--method', '-m',
+    '--method',
+    '-m',
     type=str,
     default='get_queryset',
     help='method to call on eparse model',
 )
 @click.option(
-    '--serialize', '-z',
+    '--serialize',
+    '-z',
     is_flag=True,
     default=False,
     help='serialize query output',
@@ -361,10 +379,7 @@ def query(ctx, filter, method, serialize):
 
     if serialize:
         try:
-            data = [
-                df_normalize_data(d)
-                for d in data.to_dict('records')
-            ]
+            data = [df_normalize_data(d) for d in data.to_dict('records')]
         except Exception as e:
             msg = 'serialization error (some methods can\'t be serialized)'
             handle(e, msg=f'{msg} - {e}', debug=ctx.obj['debug'])
@@ -380,7 +395,8 @@ def query(ctx, filter, method, serialize):
 @main.command()
 @click.pass_context
 @click.option(
-    '--migration', '-m',
+    '--migration',
+    '-m',
     required=True,
     type=str,
     multiple=True,

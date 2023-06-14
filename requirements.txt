@@ -5,6 +5,8 @@ pandas==2.0.1
 peewee==3.16.2
 
 # devtest
+black==23.3.0
+coverage==7.2.7
 flake8==6.0.0
 ipython==8.13.2
 pytest==7.3.1

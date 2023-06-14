@@ -50,25 +50,27 @@ supported commands and usage with ``--help`` as follows:
 
 .. code-block:: bash
 
-   $ eparse --help
-   Usage: eparse [OPTIONS] COMMAND [ARGS]...
+    $ eparse --help
+    Usage: eparse [OPTIONS] COMMAND [ARGS]...
 
-   excel parser
+    excel parser
 
-   Options:
-     -i, --input TEXT   input dir(s) or file(s)
-     -o, --output TEXT  output destination
-     -d, --debug        use debug mode
-     -l, --loose        find tables loosely
-     -r, --recursive    find files recursively
-     -t, --truncate     truncate dataframe output
-     -v, --verbose      increase output verbosity
-     --help             Show this message and exit.
+    Options:
+    -i, --input TEXT   input source
+    -o, --output TEXT  output destination
+    -f, --file TEXT    file(s) or dir(s) to target
+    -d, --debug        use debug mode
+    -l, --loose        find tables loosely
+    -r, --recursive    find files recursively
+    -t, --truncate     truncate dataframe output
+    -v, --verbose      increase output verbosity
+    --help             Show this message and exit.
 
-   Commands:
-     parse  parse table(s) found in sheet for target(s)
-     query  query eparse output
-     scan   scan for excel files in target
+    Commands:
+    migrate  migrate eparse table
+    parse    parse table(s) found in sheet for target(s)
+    query    query eparse output
+    scan     scan for excel files in target
 
 
 Scan
@@ -78,7 +80,7 @@ information, you can use the ``scan`` command like so:
 
 .. code-block:: bash
 
-    $ eparse -v -i <path_to_files> scan
+    $ eparse -v -f <path_to_files> scan
 
 Increase the verbosity with additional flags, such as ``-vvv``, for
 more descriptive information about the file(s), including sheet names.
@@ -90,7 +92,7 @@ Excel files can be parsed as follows:
 
 .. code-block:: bash
 
-    $ eparse -v -i <path_to_files> parse
+    $ eparse -v -f <path_to_files> parse
 
 This mode will list each table found in each Excel file to the command-line.
 This mode is useful for initial discovery for parseable data.
@@ -120,7 +122,7 @@ with the following command:
 
 .. code-block:: bash
 
-    $ eparse -i <path_to_files> -o stdout:/// parse -s "Sheet1"
+    $ eparse -f <path_to_files> -o stdout:/// parse -s "Sheet1"
 
 eparse uses `pandas <https://github.com/pandas-dev/pandas>`_
 to handle table data.  You can view larger tables without truncation
@@ -128,7 +130,7 @@ using the ``-t`` flag as follows:
 
 .. code-block:: bash
 
-    $ eparse -t -i <path_to_files> -o stdout:/// parse -s "Sheet1"
+    $ eparse -t -f <path_to_files> -o stdout:/// parse -s "Sheet1"
 
 Data in table format is useful for human viewing, but a serialized
 form is better for data interfacing.  Serialize your output with
@@ -136,7 +138,7 @@ the ``-z`` flag as follows:
 
 .. code-block:: bash
 
-    $ eparse -t -i <path_to_files> -o stdout:/// parse -z
+    $ eparse -t -f <path_to_files> -o stdout:/// parse -z
 
 Each cell of extracted table data is serialized as follows:
 
@@ -164,12 +166,19 @@ with your parsed Excel data, use the following command:
 .. code-block:: bash
 
     $ mkdir .files
-    $ eparse -i <path_to_files> -o sqlite3:/// parse
+    $ eparse -f <path_to_files> -o sqlite3:/// parse -z
 
 This command will automatically generate a unique database filename
 using the ``uuid`` python package in the ``.files/`` sub-directory
 of the working directory.  You may need to create this directory
 before running this command, as shown.
+
+You can also specify a path and filename of your choosing, like so:
+
+.. code-block:: bash
+
+    $ mkdir .files
+    $ eparse -f <path_to_files> -o sqlite3:///path/filename.db parse -z
 
 
 Query
@@ -183,7 +192,7 @@ For example, query distinct column header names from a generated
 
 .. code-block:: bash
 
-    $ eparse -o stdout:/// query -i from_sqlite3 .files/<db_file> -m get_c_header
+    $ eparse -i sqlite3:///.files/<db_file> -o stdout:/// query -m get_c_header
                    c_header  Total Rows  Data Types  Distinct Values
       0             ABC-col         150           2               76
       1             DEF-col        3981           3               15
@@ -193,19 +202,18 @@ For example, query distinct column header names from a generated
 This command will give descriptive information of each distinct c_header
 found, including total rows, unique data types, and distinct values.
 
-You can also get raw un-truncated data as follows, which is the default
-behavior:
+You can also get raw un-truncated data as follows:
 
 .. code-block:: bash
 
-    $ eparse -t -o stdout:/// query -i from_sqlite3 .files/<db_file>
+    $ eparse -t -i sqlite3:///.files/<db_file> -o stdout:/// query
 
 Filtering data on content is easy.  Use the ``--filter`` option as
 follows:
 
 .. code-block:: bash
 
-    $ eparse -t -o stdout:/// query -i from_sqlite3 .files/<db_file> --filter f_name "somefile.xlsx"
+    $ eparse -i sqlite3:///.files/<db_file> -o stdout:/// query --filter f_name "somefile.xlsx"
 
 The above command will filter all rows from an Excel file named
 `somefile.xlsx`. You can use any of the following ``django``-style
@@ -234,7 +242,9 @@ curated data subsets, as follows:
 
 .. code-block:: bash
 
-    $ eparse -t -o sqlite3:/// query -i from_sqlite3 .files/<db_file>
+    $ eparse -i sqlite3:///.files/<db_file> \
+             -o sqlite3:///.files/<subq_db_file> \
+             query --filter f_name "somefile.xlsx"
 
 Since database files the tool generates when using `sqlite3:///` are
 ``SQLite`` native, you can also use `SQLite` database client tools
@@ -252,6 +262,22 @@ and execute raw SQL like so:
     sqlite> SELECT * FROM excelparse limit 1;
     id|row|column|value|type|c_header|r_header|excel_RC|name|sheet|f_name
     1|0|0|ABC|<class 'str'>|SomeCol|SomeRow|B2|MyTable|Sheet1|myfile.xlsm
+
+
+Migrate
+-------
+eparse wouldn't be a solid tool without the ability to migrate your
+eparse databases for future code changes.  You can apply migrations
+that ship with future versions of eparse as follows:
+
+.. code-block:: bash
+
+    $ eparse -i sqlite3:///.files/<db_file> migrate -m <migration>
+    applied <migration>
+
+It is up to you to determine the migrations you need based on the
+eparse version you are upgrading from and to. Migrations can be
+found in `eparse/migrations.py <eparse/migrations.py>`_
 
 
 Contributing

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 '''
 unit tests for eparse cli
@@ -20,13 +20,40 @@ def test_main():
     assert 'Usage' in result.output
 
 
-def test_output_option():
+def test_scan():
+    runner = CliRunner()
+    result = runner.invoke(main, ['-f', 'tests/', 'scan'], **kwargs)
+    assert result.exit_code == 0
+    assert 'eparse_unit_test_data' in result.output
+
+
+def test_parse():
+    runner = CliRunner()
+    result = runner.invoke(main, ['-f', 'tests/', 'parse'], **kwargs)
+    assert result.exit_code == 0
+    assert 'eparse_unit_test_data' in result.output
+
+
+def test_query():
+    runner = CliRunner()
+    result = runner.invoke(main, ['-i', 'sqlite3:///tests/test.db', 'query'], **kwargs)
+    assert result.exit_code == 0
+    assert result.output == ''
+
+
+def test_outputs():
     runner = CliRunner()
     result = runner.invoke(main, ['-o', 'null:///', 'scan'], **kwargs)
     assert result.exit_code == 0
     assert result.output == ''
-    result = runner.invoke(main, ['-o', 'spoon', 'scan'], **kwargs)
+    result = runner.invoke(main, ['-o', 'stdout:///', 'scan'], **kwargs)
+    assert result.exit_code == 0
+    assert result.output == ''
+    result = runner.invoke(main, ['-o', 'sqlite3:///:memory:', 'scan'], **kwargs)
+    assert result.exit_code == 0
+    assert result.output == ''
+    result = runner.invoke(main, ['-o', 'test', 'scan'], **kwargs)
     assert result.exit_code == 1
-    assert 'there is no spoon' in result.output
-    with pytest.raises(AttributeError):
-        result = runner.invoke(main, ['-d', '-o', 'spoon', 'scan'], **kwargs)
+    assert 'test is not a recognized endpoint' in result.output
+    with pytest.raises(ValueError):
+        result = runner.invoke(main, ['-d', '-o', 'test', 'scan'], **kwargs)

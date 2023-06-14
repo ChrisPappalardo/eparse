@@ -210,8 +210,8 @@ class BaseDatabaseInterface(BaseInterface):
         DATABASE.create_tables([self.Model])
 
         # insert data into Model
-        for d in data:
-            self.Model.create(**d)
+        with DATABASE.atomic():
+            self.Model.insert_many(data).execute()
 
         # DATABASE.close()
 

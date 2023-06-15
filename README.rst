@@ -16,12 +16,13 @@ Description
 Excel spreadsheet crawler and table parser for data extraction
 and querying.
 
+
 Features
 ========
 * Command-line interface
 * Recursive Excel file discovery
 * Tabular data extraction
-* SQLite database interface
+* SQLite and PostgreSQL database interfaces
 * CLI query tool
 * Summary data metrics
 
@@ -65,8 +66,8 @@ installed (and compiled)  ``psycopg2``.
 
 Usage
 =====
-eparse is intended to be used from the command-line.  You can view
-supported commands and usage with ``--help`` as follows:
+eparse can be used as either a python library or from the command-line.
+You can view supported CLI commands and usage with ``--help`` as follows:
 
 .. code-block:: bash
 
@@ -91,6 +92,20 @@ supported commands and usage with ``--help`` as follows:
     parse    parse table(s) found in sheet for target(s)
     query    query eparse output
     scan     scan for excel files in target
+
+You can also use eparse from python like so:
+
+.. code-block:: python
+
+    from eparse.core import get_df_from_file
+
+    print([table for table in get_df_from_file('myfile.xlsx')])
+    102   Date  Principal Repayment   Date  Principal Repayment
+    103  44834        700757.679004  44926        430013.148303
+    104  44926         71957.776108  45016        100576.127808
+    105  45016         147578.19262  45107        898008.340095
+    106  45107         32801.363072  45199         841656.13896
+    ...
 
 
 Scan
@@ -126,7 +141,8 @@ corners and the dense vs. sparse criterion can be controlled with
 the ``--loose`` flag.
 
 eparse was written to accomodate various types of output formats and
-endpoints, including ``null:///``, ``stdout:///``, and ``sqlite3:///``.
+endpoints, including ``null:///``, ``stdout:///``, ``sqlite3:///db_name``,
+and ``postgres://user:password@host:port/db_name``.
 
 null
 ^^^^

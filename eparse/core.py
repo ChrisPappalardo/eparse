@@ -4,14 +4,13 @@
 excel parser core module
 '''
 
-from typing import Dict, List, Tuple
+from typing import Dict, Iterable, List, Tuple
 
 from openpyxl.utils.cell import get_column_letter
 import pandas as pd
 
 
 TableRef = Tuple[int, int, str, str]  # r, c, excel RC, value
-TableRec = Tuple[str, str, pd.DataFrame]  # name, excel RC, table
 
 
 # NOTE: df[n] df.at[r,c] and df.iloc[r,c] are not all the same
@@ -20,7 +19,10 @@ TableRec = Tuple[str, str, pd.DataFrame]  # name, excel RC, table
 #       sub-tables, e.g. the output from df_parse_table
 
 
-def df_find_tables(df: pd.DataFrame, loose=False) -> List[TableRef]:
+def df_find_tables(
+    df: pd.DataFrame,
+    loose: bool = False,
+) -> List[TableRef]:
     '''
     finds table corners in a dataframe
     '''
@@ -206,3 +208,39 @@ def df_serialize_table(
             )
 
     return result
+
+
+def get_df_from_file(
+    filename: str,
+    loose: bool = True,
+    sheet: Iterable = [],
+    table: str = None,
+):
+    '''
+    helper function to yield tables from a file
+    '''
+
+    f = pd.read_excel(
+        filename,
+        sheet_name=list(sheet) or None,
+        header=None,
+        index_col=None,
+    )
+
+    # convert to dict if single sheet
+    if type(f) is not dict:
+        f = {s: f for s in sheet}
+
+    for s in f.keys():
+        tables = df_find_tables(f[s], loose)
+
+        for r, c, excel_RC, name in tables:
+            if table is not None and table.lower() not in name.lower():
+                continue
+
+            yield (
+                df_parse_table(f[s], r, c),
+                excel_RC,
+                name,
+                s,
+            )

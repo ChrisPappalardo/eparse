@@ -14,9 +14,9 @@ import pandas as pd
 
 from .core import (
     df_find_tables,
-    df_parse_table,
     df_normalize_data,
     df_serialize_table,
+    get_df_from_file,
 )
 from .interfaces import ExcelParse, i_factory
 
@@ -276,40 +276,22 @@ def parse(ctx, sheet, serialize, table):
     if ctx.obj['debug']:
         PrettyPrinter().pprint(ctx.obj)
 
-    # process each Excel file in files
-    for i, f in enumerate(ctx.obj['files']):
+    for f in ctx.obj['files']:
         if f.is_file() and 'xls' in f.name:
+            print(f'{f.name}')
+
             try:
-                e_file = pd.read_excel(
+                for (
+                    output,
+                    excel_RC,
+                    name,
+                    s,
+                ) in get_df_from_file(
                     f,
-                    sheet_name=list(sheet) or None,
-                    header=None,
-                    index_col=None,
-                )
-            except Exception as e:
-                msg = f'skipping {f} - {e}'
-                handle(e, msg=msg, debug=ctx.obj['debug'], exit=False)
-                continue
-
-            if not ctx.obj['verbose']:
-                print(f'{f.name}')
-
-            # convert e_file to dict if single sheet
-            if type(e_file) is not dict:
-                e_file = {s: e_file for s in sheet}
-
-            # process each table found in each sheet of file
-            for s in e_file.keys():
-                for r, c, excel_RC, name in df_find_tables(
-                    e_file[s],
                     ctx.obj['loose'],
+                    sheet,
+                    table,
                 ):
-                    if table is not None and table.lower() not in name.lower():
-                        continue
-
-                    # parse and serialize (if enabled) table
-                    output = df_parse_table(e_file[s], r, c)
-
                     if ctx.obj['verbose']:
                         m = '{} table {} {} found at {} in {}'
                         v = (f.name, name, output.shape, excel_RC, s)
@@ -318,21 +300,25 @@ def parse(ctx, sheet, serialize, table):
                     if serialize:
                         output = df_serialize_table(
                             output,
-                            name=str(name),
-                            sheet=str(s),
-                            f_name=str(f.name),
+                            name=name,
+                            sheet=s,
+                            f_name=f.name,
                         )
 
                     if ctx.obj['debug']:
                         PrettyPrinter().pprint(output)
 
-                    # output table
                     try:
                         ctx.obj['output_obj'].output(output, ctx)
                     except Exception as e:
                         msg = f'output to {ctx.obj["output"]} failed - {e}'
                         handle(e, msg=msg, debug=ctx.obj['debug'], exit=False)
-                        continue
+                        break
+
+            except Exception as e:
+                msg = f'skipping {f} - {e}'
+                handle(e, msg=msg, debug=ctx.obj['debug'], exit=False)
+                continue
 
 
 @main.command()

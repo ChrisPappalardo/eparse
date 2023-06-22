@@ -21,7 +21,7 @@ Features
 ========
 * Command-line interface
 * Recursive Excel file discovery
-* Tabular data extraction
+* Sub-tabular data extraction (logical tables)
 * SQLite and PostgreSQL database interfaces
 * CLI query tool
 * Summary data metrics
@@ -315,7 +315,7 @@ and execute raw SQL like so:
     sqlite> .schema
     CREATE TABLE IF NOT EXISTS "excelparse" ("id" INTEGER NOT NULL PRIMARY KEY, "row" INTEGER NOT NULL, "column" INTEGER NOT NULL, "value" VARCHAR(255) NOT NULL, "type" VARCHAR(255) NOT NULL, "c_header" VARCHAR(255) NOT NULL, "r_header" VARCHAR(255) NOT NULL, "excel_RC" VARCHAR(255) NOT NULL, "name" VARCHAR(255) NOT NULL, "sheet" VARCHAR(255) NOT NULL, "f_name" VARCHAR(255) NOT NULL);
     sqlite> .header on
-    sqlite> SELECT * FROM excelparse limit 1;
+    sqlite> SELECT * FROM excelparse LIMIT 1;
     id|row|column|value|type|c_header|r_header|excel_RC|name|sheet|f_name
     1|0|0|ABC|<class 'str'>|SomeCol|SomeRow|B2|MyTable|Sheet1|myfile.xlsm
 

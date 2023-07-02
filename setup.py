@@ -21,6 +21,8 @@ requirements = [
 ]
 
 test_requirements = [
+    'black',
+    'coverage',
     'flake8',
     'ipython',
     'pytest',
@@ -30,7 +32,7 @@ test_requirements = [
 setup(
     author='Chris Pappalardo',
     author_email='cpappala@gmail.com',
-    python_requires='>=3.9',
+    python_requires='>=3.8',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
@@ -38,8 +40,10 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
     description='''
     Excel spreadsheet crawler and table parser for data discovery, extraction, and querying
@@ -59,6 +63,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/ChrisPappalardo/eparse',
-    version='0.6.1',
+    version='0.6.2',
     zip_safe=False,
 )

@@ -8,6 +8,6 @@ peewee==3.16.2
 black==23.3.0
 coverage==7.2.7
 flake8==6.0.0
-ipython==8.13.2
+ipython==8.12.2
 pytest==7.3.1
 tox==4.6.0

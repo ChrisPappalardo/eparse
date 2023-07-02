@@ -6,6 +6,7 @@ import lxml.html
 import pandas as pd
 
 from unstructured.documents.elements import (
+    DataSourceMetadata,
     Element,
     ElementMetadata,
     Table,
@@ -55,11 +56,18 @@ def partition_xlsx(
         text = lxml.html.document_fromstring(html_text).text_content()
 
         if include_metadata:
+            datasource_metadata = DataSourceMetadata(
+                record_locator={
+                    "excel_RC": excel_RC,
+                    "table_name": table_name,
+                },
+            )
             metadata = ElementMetadata(
                 text_as_html=html_text,
                 page_name=sheet_name,
                 page_number=table_number,
                 filename=metadata_filename,
+                data_source=datasource_metadata,
             )
         else:
             metadata = ElementMetadata()
@@ -70,7 +78,7 @@ def partition_xlsx(
     return elements
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     try:
         partition_xlsx("tests/eparse_unit_test_data.xlsx")
     except Exception as e:

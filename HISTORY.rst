@@ -45,3 +45,8 @@ History
 
 * Added get_df_from_file helper function
 * Added contrib with unstructured partition handler
+
+0.6.3 (2023-06-22)
+==================
+
+* updated get_df_from_file to accept filename or io object

@@ -211,7 +211,7 @@ def df_serialize_table(
 
 
 def get_df_from_file(
-    filename: str,
+    io,
     loose: bool = True,
     sheet: Iterable = [],
     table: str = None,
@@ -221,7 +221,7 @@ def get_df_from_file(
     '''
 
     f = pd.read_excel(
-        filename,
+        io,
         sheet_name=list(sheet) or None,
         header=None,
         index_col=None,

@@ -191,7 +191,7 @@ class BaseDatabaseInterface(BaseInterface):
 
         return m(**kwargs)
 
-    def output(self, data, obj):
+    def output(self, data, *args, **kwargs):
         # skip empty data
         if hasattr(data, 'empty') and data.empty:
             return

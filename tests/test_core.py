@@ -5,27 +5,15 @@ unit tests for eparse core
 '''
 
 import pandas as pd
-import pytest
 
+from .fixtures import xlsx
 from eparse.core import (
     df_find_tables,
     df_parse_table,
     df_serialize_table,
     get_df_from_file,
+    get_table_digest,
 )
-
-
-@pytest.fixture
-def xlsx():
-    '''
-    excel file fixture
-    '''
-
-    return pd.read_excel(
-        'tests/eparse_unit_test_data.xlsx',
-        header=None,
-        index_col=None,
-    )
 
 
 def test_df_find_tables(xlsx):
@@ -63,3 +51,13 @@ def test_get_df_from_file():
     assert isinstance(df_a, pd.DataFrame)
     assert isinstance(df_b, pd.DataFrame)
     assert df_a.shape == df_b.shape
+
+
+def test_get_table_digest(xlsx):
+    parse = df_parse_table(xlsx, 26, 1)
+    serialized_table = df_serialize_table(parse)
+    digest = get_table_digest(serialized_table, table_name='Financials')
+    assert isinstance(digest, str)
+    assert 'Last Price Discovery:  03/01/2022' in digest
+    assert 'Interest Expense' in digest
+    assert 'float' in digest

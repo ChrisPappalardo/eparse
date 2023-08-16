@@ -6,6 +6,7 @@ unit test fixtures
 
 import pytest
 
+import pandas as pd
 from peewee import SqliteDatabase
 
 from eparse.interfaces import (
@@ -60,3 +61,16 @@ def sqlite3_db(data):
     ExcelParse.create(**data)
 
     return DATABASE.obj
+
+
+@pytest.fixture
+def xlsx():
+    '''
+    excel file fixture
+    '''
+
+    return pd.read_excel(
+        'tests/eparse_unit_test_data.xlsx',
+        header=None,
+        index_col=None,
+    )

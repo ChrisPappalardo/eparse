@@ -278,8 +278,9 @@ tags
 
 
 ### Project template
-/db.sqlite3
 /.env
 /.files/
 /.ipython/
 /.pytest_cache/
+/db.sqlite3
+/contrib/ask_my_eparse/

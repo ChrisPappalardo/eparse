@@ -256,21 +256,21 @@ def get_table_digest(
     generate a digest that describes a serialized table
     '''
 
-    df = pd.DataFrame(serialized_table)
-    rows, cols = df.shape
+    df = pd.DataFrame.from_records(serialized_table)
+    rows = len(df['row'].unique())
+    cols = len(df['column'].unique())
     c_headers = df['c_header'].unique()
     r_headers = df['r_header'].unique()
     types = df['type'].unique()
 
     sheet_str = f' in sheet {sheet}' if sheet else ''
     file_str = f' of Excel file {filename}' if filename else ''
-    type_str = f' {", ".join([str(t) for t in types])} type'
-    type_str += 's' if len(types) > 1 else ''
+    type_str = f' {", ".join([str(t) for t in types])} type(s)'
 
     digest = (
         f'{table_name} is a table{sheet_str}{file_str} '
-        f'with {cols} columns having names like {", ".join(c_headers)} '
-        f'and {rows} rows having names like {", ".join(r_headers)} '
+        f'with {cols} column(s) having names like {", ".join(c_headers)} '
+        f'and {rows} row(s) having names like {", ".join(r_headers)} '
         f'and contains {rows*cols} cells of{type_str}'
     )
 

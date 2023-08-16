@@ -58,6 +58,8 @@ def test_get_table_digest(xlsx):
     serialized_table = df_serialize_table(parse)
     digest = get_table_digest(serialized_table, table_name='Financials')
     assert isinstance(digest, str)
+    assert f'{parse.shape[1]} column(s)' in digest
+    assert f'{parse.shape[0]} row(s)' in digest
     assert 'Last Price Discovery:  03/01/2022' in digest
     assert 'Interest Expense' in digest
     assert 'float' in digest

@@ -275,3 +275,28 @@ def get_table_digest(
     )
 
     return digest
+
+
+def html_to_df(
+    html: str,
+) -> pd.DataFrame:
+    '''
+    helper function to return pandas dataframe from html
+    '''
+
+    return pd.read_html(
+        html,
+        header=None,
+        index_col=None,
+    )
+
+
+def html_to_serialized_data(
+    html: str,
+    **other_data,
+) -> List[Dict]:
+    '''
+    helper function to return serialized data from html
+    '''
+
+    return df_serialize_table(html_to_df(html)[0], **other_data)

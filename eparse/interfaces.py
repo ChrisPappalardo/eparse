@@ -26,6 +26,8 @@ from peewee import (
     SqliteDatabase,
 )
 
+from .core import html_to_serialized_data
+
 
 DATABASE = DatabaseProxy()
 
@@ -260,18 +262,33 @@ class PostgresInterface(BaseDatabaseInterface):
         )
 
 
-def i_factory(uri, Model=None):
+class HtmlInterface(Sqlite3Interface):
+    '''
+    html data interface using sqlite3
+    '''
+
+    def __init__(self, *args, html: Optional[str] = None, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        if html is not None:
+            self.output(html_to_serialized_data(html))
+
+
+def i_factory(uri, Model=None, **kwargs):
     '''
     return interface object based on uri
     '''
 
     if uri.startswith('null'):
-        return NullInterface(uri)
+        return NullInterface(uri, **kwargs)
     elif uri.startswith('stdout'):
-        return StdoutInterface(uri)
+        return StdoutInterface(uri, **kwargs)
     elif uri.startswith('sqlite3'):
-        return Sqlite3Interface(uri, Model)
+        return Sqlite3Interface(uri, Model, **kwargs)
     elif uri.startswith('postgres'):
-        return PostgresInterface(uri, Model)
+        return PostgresInterface(uri, Model, **kwargs)
+    elif uri.startswith('html'):
+        _uri = uri.replace('html', 'sqlite3')
+        return HtmlInterface(_uri, Model, **kwargs)
 
     raise ValueError(f'{uri} is not a recognized endpoint')

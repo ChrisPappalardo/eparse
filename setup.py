@@ -16,6 +16,7 @@ with open('HISTORY.rst') as history_file:
 requirements = [
     'click>=8.0.0',
     'openpyxl>=3.0.0',
+    'lxml>=4.9.3',
     'pandas>=2.0.0',
     'peewee>=3.16.0',
 ]

@@ -7,7 +7,7 @@ unit tests for eparse interfaces
 import pytest
 
 import pandas as pd
-from peewee import ModelBase, SqliteDatabase
+from peewee import SqliteDatabase
 
 from .fixtures import ctx, data, sqlite3_db
 from eparse.interfaces import (
@@ -17,6 +17,7 @@ from eparse.interfaces import (
     NullInterface,
     StdoutInterface,
     Sqlite3Interface,
+    HtmlInterface,
     i_factory,
 )
 
@@ -50,6 +51,17 @@ def test_sqlite3_interface(data, ctx):
     obj = i_factory('sqlite3:///:memory:', ExcelParse)
     obj.output([], ctx)
     obj.output([data], ctx)
+    assert isinstance(obj, Sqlite3Interface)
+    assert DATABASE.table_exists('excelparse')
+    assert len(ExcelParse.select()) == 1
+
+
+def test_html_interface(data, ctx):
+    html = pd.DataFrame.from_records([data]).to_html()
+    obj = i_factory('html:///:memory:', ExcelParse)
+    obj.output([], ctx)
+    obj.output([data], ctx)
+    assert isinstance(obj, HtmlInterface)
     assert isinstance(obj, Sqlite3Interface)
     assert DATABASE.table_exists('excelparse')
     assert len(ExcelParse.select()) == 1

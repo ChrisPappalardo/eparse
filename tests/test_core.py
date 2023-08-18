@@ -13,6 +13,8 @@ from eparse.core import (
     df_serialize_table,
     get_df_from_file,
     get_table_digest,
+    html_to_df,
+    html_to_serialized_data,
 )
 
 
@@ -63,3 +65,15 @@ def test_get_table_digest(xlsx):
     assert 'Last Price Discovery:  03/01/2022' in digest
     assert 'Interest Expense' in digest
     assert 'float' in digest
+
+
+def test_html_to_df_and_serialized_data(xlsx):
+    table = df_parse_table(xlsx, 102, 2)
+    html = table.to_html(index=False, header=False, na_rep="")
+    df = html_to_df(html)[0]
+    assert isinstance(df, pd.DataFrame)
+    assert df.shape == table.shape
+    st = html_to_serialized_data(html)
+    assert isinstance(st, list)
+    assert isinstance(st[0], dict)
+    assert len(st) == 11 * 8

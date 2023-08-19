@@ -1,9 +1,12 @@
 from tempfile import SpooledTemporaryFile
 from typing import IO, BinaryIO, List, Optional, Union, cast
 
-from eparse.core import get_df_from_file
+from eparse.core import (
+    df_serialize_table,
+    get_df_from_file,
+    get_table_digest,
+)
 import lxml.html
-import pandas as pd
 
 from unstructured.documents.elements import (
     DataSourceMetadata,
@@ -14,6 +17,19 @@ from unstructured.documents.elements import (
 )
 from unstructured.file_utils.filetype import FileType, add_metadata_with_filetype
 from unstructured.partition.common import exactly_one, spooled_to_bytes_io_if_needed
+
+
+_eparse_modes = (
+    'eparse',
+    'digest',
+    'table-digest',
+    'unstructured',
+)
+
+_index_modes = (
+    'eparse',
+    'langchain',
+)
 
 
 @process_metadata()
@@ -49,11 +65,13 @@ def partition_xlsx(
     metadata_filename = filename or metadata_filename
 
     elements: List[Element] = []
+    eparse_mode: Optional[str] = kwargs.pop("eparse_mode", None)
+    eparse_max_rows: Optional[int] = kwargs.pop("eparse_max_rows", 75)
+    eparse_max_cols: Optional[int] = kwargs.pop("eparse_max_cols", 20)
     table_number = 0
     for table, excel_RC, table_name, sheet_name in tables:
         table_number += 1
         html_text = table.to_html(index=False, header=False, na_rep="")
-        text = lxml.html.document_fromstring(html_text).text_content()
 
         if include_metadata:
             datasource_metadata = DataSourceMetadata(
@@ -71,6 +89,28 @@ def partition_xlsx(
             )
         else:
             metadata = ElementMetadata()
+
+        text = ""
+
+        if eparse_mode == "eparse":
+            text = str(table.iloc[:eparse_max_rows, :eparse_max_cols])
+
+            if "digest" in eparse_mode:
+                digest = get_table_digest(
+                    df_serialize_table(table),
+                    table_name=table_name,
+                )
+                if eparse_mode == "table-digest":
+                    text = (
+                        f"{table_name} is a spreadsheet table. This is "
+                        f"the head of the table:\n{table.head(table_size)}\n"
+                        f"Summary: {digest}."
+                    )
+                else:
+                    text = digest
+
+        elif eparse_mode == "unstructured":
+            text = lxml.html.document_fromstring(html_text).text_content()
 
         table = Table(text=text, metadata=metadata)
         elements.append(table)

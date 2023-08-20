@@ -1,3 +1,5 @@
+"""custom unstructured xlsx partition module using eparse"""
+
 from tempfile import SpooledTemporaryFile
 from typing import IO, BinaryIO, List, Optional, Union, cast
 
@@ -24,11 +26,6 @@ _eparse_modes = (
     'digest',
     'table-digest',
     'unstructured',
-)
-
-_index_modes = (
-    'eparse',
-    'langchain',
 )
 
 
@@ -59,7 +56,9 @@ def partition_xlsx(
     if filename:
         tables = get_df_from_file(filename)
     else:
-        f = spooled_to_bytes_io_if_needed(cast(Union[BinaryIO, SpooledTemporaryFile], file))
+        f = spooled_to_bytes_io_if_needed(
+            cast(Union[BinaryIO, SpooledTemporaryFile], file)
+        )
         tables = get_df_from_file(f)
 
     metadata_filename = filename or metadata_filename
@@ -103,7 +102,7 @@ def partition_xlsx(
                 if eparse_mode == "table-digest":
                     text = (
                         f"{table_name} is a spreadsheet table. This is "
-                        f"the head of the table:\n{table.head(table_size)}\n"
+                        f"the head of the table:\n{table.head(eparse_max_rows)}\n"
                         f"Summary: {digest}."
                     )
                 else:

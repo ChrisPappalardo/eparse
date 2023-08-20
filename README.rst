@@ -336,6 +336,19 @@ eparse version you are upgrading from and to. Migrations can be
 found in `eparse/migrations.py <eparse/migrations.py>`_
 
 
+Unstructured
+============
+If you would like to use eparse to partition xls[x] files alongside unstructured, you can do so with our contributed `partition` and `partition_xlsx` modules. Simply import the `partition` function from `eparse.contrib.unstructured.partition` and use it instead of `partition` from `unstructured.partition.auto` like so:
+
+.. code-block:: python
+
+    from eparse.contrib.unstructured.partition import partition
+
+    elements = partition(filename='some_file.xlsx', eparse_mode='...')
+
+Valid `eparse_mode` settings are available in `eparse.contrib.unstructured.xlsx._eparse_modes`.
+
+
 Contributing
 ============
 As an open-source project, contributions are always welcome. Please see `Contributing <CONTRIBUTING.rst>`_ for more information.

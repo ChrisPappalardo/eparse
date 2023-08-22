@@ -4,7 +4,7 @@ openpyxl==3.1.2
 lxml==4.9.3
 pandas==2.0.1
 peewee==3.16.2
-unstructured==0.9.0
+unstructured==0.10.5
 
 # devtest
 black==23.3.0

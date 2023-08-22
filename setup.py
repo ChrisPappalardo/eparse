@@ -19,7 +19,7 @@ requirements = [
     'lxml>=4.9.3',
     'pandas>=2.0.0',
     'peewee>=3.16.0',
-    'unstructured>=0.9.0',
+    'unstructured>=0.8.5',
 ]
 
 test_requirements = [
@@ -65,6 +65,6 @@ setup(
     test_suite='tests',
     tests_require=test_requirements,
     url='https://github.com/ChrisPappalardo/eparse',
-    version='0.7.1',
+    version='0.7.2',
     zip_safe=False,
 )

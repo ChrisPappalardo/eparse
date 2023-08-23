@@ -2,7 +2,12 @@
 History
 =======
 
-0.7.2 (2023-08-20)
+0.7.3 (2023-08-23)
+==================
+
+* Updated partition and partition_xlsx for latest unstructured
+
+0.7.2 (2023-08-22)
 ==================
 
 * Relaxed unstructured dependency requirement for compatibility
@@ -19,7 +24,7 @@ History
 * Added html conversion functions and an html data interface
 * Added get_table_digest to core
 
-0.6.3 (2023-06-22)
+0.6.3 (2023-06-30)
 ==================
 
 * Updated get_df_from_file to accept filename or io object

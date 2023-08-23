@@ -100,6 +100,9 @@ def partition(
             encoding=encoding,
         )
 
+    if file is not None:
+        file.seek(0)
+
     eparse_mode = kwargs.pop("eparse_mode", None)
     fcn = unstructured_partition_auto
     is_xlsx = filetype in (FileType.XLS, FileType.XLSX)
@@ -107,6 +110,9 @@ def partition(
     if is_xlsx and eparse_mode not in (None, "unstructured"):
         fcn = eparse_partition_xlsx
         kwargs["eparse_mode"] = eparse_mode
+
+    if file is not None and file_filename is not None:
+        kwargs.setdefault("metadata_filename", file_filename)
 
     return fcn(
         filename=filename,

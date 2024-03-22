@@ -111,6 +111,8 @@ def df_parse_table(
     df: pd.DataFrame,
     r: int,
     c: int,
+    na_tolerance_r: int = 1,
+    na_tolerance_c: int = 1
 ) -> pd.DataFrame:
     '''
     extract a table from a dataframe for a given r, c position
@@ -126,16 +128,25 @@ def df_parse_table(
     _r = r + 1
 
     # get ending row
+    na_count = 0
     for row in range(r + 1, df.shape[0]):
         if pd.isna(df.at[row, c]):
+            na_count += 1
+        else:
+            na_count = 0
+        if na_count == na_tolerance_r:
             break
         _r += 1
-
     _c = c + 1
 
     # get ending col
+    na_count = 0
     for col in range(c + 1, df.shape[1]):
         if pd.isna(df.at[r, col]):
+            na_count += 1
+        else:
+            na_count = 0
+        if na_count == na_tolerance_c:
             break
         _c += 1
 
@@ -215,6 +226,8 @@ def get_df_from_file(
     loose: bool = True,
     sheet: Iterable = [],
     table: str = None,
+    na_tolerance_r: int = 1,
+    na_tolerance_c: int = 1
 ):
     '''
     helper function to yield tables from a file
@@ -239,7 +252,7 @@ def get_df_from_file(
                 continue
 
             yield (
-                df_parse_table(f[s], r, c),
+                df_parse_table(f[s], r, c, na_tolerance_r, na_tolerance_c),
                 excel_RC,
                 name,
                 s,

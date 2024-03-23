@@ -4,12 +4,9 @@
 unit tests for eparse interfaces
 '''
 
-import pytest
-
 import pandas as pd
 from peewee import SqliteDatabase
 
-from .fixtures import ctx, data, sqlite3_db
 from eparse.interfaces import (
     DATABASE,
     ExcelParse,

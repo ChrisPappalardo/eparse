@@ -6,7 +6,6 @@ unit tests for eparse core
 
 import pandas as pd
 
-from .fixtures import xlsx
 from eparse.core import (
     df_find_tables,
     df_parse_table,
@@ -35,6 +34,20 @@ def test_df_parse_table(xlsx):
     t = df_parse_table(xlsx, 102, 2)
     assert t.shape == (11, 8)
     assert t.iloc[0, 2] == 'Date'
+
+
+def test_df_parse_table_na_tolerance(xlsx):
+    t = df_parse_table(xlsx, 2, 2)
+    assert t.shape == (9, 2)
+    t = df_parse_table(
+        xlsx,
+        2,
+        2,
+        na_tolerance_r=2,
+        na_tolerance_c=2,
+        na_strip=True,
+    )
+    assert t.shape == (9, 8)
 
 
 def test_df_serialize_table(xlsx):

@@ -113,7 +113,7 @@ def df_parse_table(
     c: int,
     na_tolerance_r: int = 1,
     na_tolerance_c: int = 1,
-    na_strip: bool = False,
+    na_strip: bool = True,
 ) -> pd.DataFrame:
     '''
     extract a table from a dataframe for a given r, c position
@@ -151,10 +151,10 @@ def df_parse_table(
             break
         _c += 1
 
-    # # strip ending na
-    if na_strip and df.iloc[_r].isna().all():
+    # strip ending na
+    if na_strip and df.iloc[r:_r, c:_c].iloc[-1].isna().all():
         _r -= 1
-    if na_strip and df.iloc[_c].isna().all():
+    if na_strip and df.iloc[r:_r, c:_c].iloc[:, ((_c - c) - 1)].isna().all():
         _c -= 1
 
     return df.iloc[r:_r, c:_c]
@@ -235,7 +235,7 @@ def get_df_from_file(
     table: str = None,
     na_tolerance_r: int = 1,
     na_tolerance_c: int = 1,
-    na_strip: bool = False,
+    na_strip: bool = True,
 ):
     '''
     helper function to yield tables from a file

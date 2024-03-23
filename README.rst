@@ -35,13 +35,23 @@ To install eparse, you can use pip and the latest version on PyPI:
 
    $ pip install eparse
 
-Or you can clone this repo and install from source:
+Or you can clone this repo and install from source, as the latest version
+will not always by on PyPI:
 
 .. code-block:: bash
 
    $ git clone https://github.com/ChrisPappalardo/eparse.git
    $ cd eparse
    $ pip install .
+
+Using eparse in another project?  You can also add either a PyPI version
+or the latest source to your ``requirements.txt`` file as follows:
+
+.. code-block::
+
+   eparse  # latest pypi version
+   eparse==0.7.3  # sepcific pypi version
+   eparse @ git+https://github.com/ChrisPappalardo/eparse.git  # latest source
 
 If you plan to use the postgres interface, you also need to install
 the postgres package ``psycopg2``. Instructions can be found

@@ -143,12 +143,14 @@ This mode will list each table found in each Excel file to the command-line.
 This mode is useful for initial discovery for parseable data.
 
 eparse uses a simple algorithm for identifying tables.  Table "corners"
-are identified as cells that contain empty cells above and to the right
-(or sheet boundaries).  A densely or sparsely populated 2x2 table must
+are identified as cells that contain empty cells above and to the left
+(or sheet boundaries).  A densely or sparsely populated 2x2+ table must
 follow in order for data to be extracted in relation to that cell.
 eparse will automatically adjust for rowspan labels and empty table
 corners and the dense vs. sparse criterion can be controlled with
-the ``--loose`` flag.
+the ``--loose`` flag.  eparse can also tolerate a user-specified number
+of NA row and column cells and still consider the table to be unbroken
+with the ``--nacount`` arg.
 
 eparse was written to accomodate various types of output formats and
 endpoints, including ``null:///``, ``stdout:///``, ``sqlite3:///db_name``,

@@ -264,7 +264,13 @@ def scan(ctx, number, sheet, tables):
     default=None,
     help='name of table to parse',
 )
-def parse(ctx, sheet, serialize, table):
+@click.option(
+    '--nacount',
+    type=int,
+    default=0,
+    help='allow for this many NA values when spanning rows and columns',
+)
+def parse(ctx, sheet, serialize, table, nacount):
     '''
     parse table(s) found in sheet for target(s)
     '''
@@ -272,6 +278,8 @@ def parse(ctx, sheet, serialize, table):
     ctx.obj['sheet'] = sheet
     ctx.obj['serialize'] = serialize
     ctx.obj['table'] = table
+    ctx.obj['na_tolerance_r'] = nacount + 1
+    ctx.obj['na_tolerance_c'] = nacount + 1
 
     if ctx.obj['debug']:
         PrettyPrinter().pprint(ctx.obj)
@@ -291,6 +299,8 @@ def parse(ctx, sheet, serialize, table):
                     ctx.obj['loose'],
                     sheet,
                     table,
+                    ctx.obj['na_tolerance_r'],
+                    ctx.obj['na_tolerance_c'],
                 ):
                     if ctx.obj['verbose']:
                         m = '{} table {} {} found at {} in {}'

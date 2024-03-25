@@ -35,13 +35,23 @@ To install eparse, you can use pip and the latest version on PyPI:
 
    $ pip install eparse
 
-Or you can clone this repo and install from source:
+Or you can clone this repo and install from source, as the latest version
+will not always by on PyPI:
 
 .. code-block:: bash
 
    $ git clone https://github.com/ChrisPappalardo/eparse.git
    $ cd eparse
    $ pip install .
+
+Using eparse in another project?  You can also add either a PyPI version
+or the latest source to your ``requirements.txt`` file as follows:
+
+.. code-block:: bash
+
+   eparse  # latest pypi version
+   eparse==0.8.0  # sepcific pypi version
+   eparse @ git+https://github.com/ChrisPappalardo/eparse.git  # latest source
 
 If you plan to use the postgres interface, you also need to install
 the postgres package ``psycopg2``. Instructions can be found
@@ -133,12 +143,14 @@ This mode will list each table found in each Excel file to the command-line.
 This mode is useful for initial discovery for parseable data.
 
 eparse uses a simple algorithm for identifying tables.  Table "corners"
-are identified as cells that contain empty cells above and to the right
-(or sheet boundaries).  A densely or sparsely populated 2x2 table must
+are identified as cells that contain empty cells above and to the left
+(or sheet boundaries).  A densely or sparsely populated 2x2+ table must
 follow in order for data to be extracted in relation to that cell.
 eparse will automatically adjust for rowspan labels and empty table
 corners and the dense vs. sparse criterion can be controlled with
-the ``--loose`` flag.
+the ``--loose`` flag.  eparse can also tolerate a user-specified number
+of NA row and column cells and still consider the table to be unbroken
+with the ``--nacount`` arg.
 
 eparse was written to accomodate various types of output formats and
 endpoints, including ``null:///``, ``stdout:///``, ``sqlite3:///db_name``,

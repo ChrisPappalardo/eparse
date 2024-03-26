@@ -47,7 +47,7 @@ will not always by on PyPI:
 Using eparse in another project?  You can also add either a PyPI version
 or the latest source to your ``requirements.txt`` file as follows:
 
-.. code-block:: bash
+::
 
    eparse  # latest pypi version
    eparse==0.8.0  # sepcific pypi version

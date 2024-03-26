@@ -31,7 +31,7 @@ Installation
 ============
 To install eparse, you can use pip and the latest version on PyPI:
 
-.. code:: bash
+.. code-block::
 
    $ pip install eparse
 

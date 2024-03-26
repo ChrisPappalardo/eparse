@@ -38,7 +38,7 @@ To install eparse, you can use pip and the latest version on PyPI:
 Or you can clone this repo and install from source, as the latest version
 will not always by on PyPI:
 
-.. code-block:: bash
+.. code-block::
 
    $ git clone https://github.com/ChrisPappalardo/eparse.git
    $ cd eparse
@@ -64,7 +64,7 @@ The easiest way to install the ``psycopg2`` package for your
 particular environment may be to install the pre-compiled
 binary driver as follows:
 
-.. code-block:: bash
+.. code-block::
 
    $ pip install psycopg2-binary
 
@@ -79,7 +79,7 @@ Usage
 eparse can be used as either a python library or from the command-line.
 You can view supported CLI commands and usage with ``--help`` as follows:
 
-.. code-block:: bash
+.. code-block::
 
     $ eparse --help
     Usage: eparse [OPTIONS] COMMAND [ARGS]...
@@ -123,7 +123,7 @@ Scan
 To scan one or more directories for Excel files with descriptive
 information, you can use the ``scan`` command like so:
 
-.. code-block:: bash
+.. code-block::
 
     $ eparse -v -f <path_to_files> scan
 
@@ -135,7 +135,7 @@ Parse
 -----
 Excel files can be parsed as follows:
 
-.. code-block:: bash
+.. code-block::
 
     $ eparse -v -f <path_to_files> parse
 
@@ -168,7 +168,7 @@ This mode is good for viewing data extracted from Excel files in the
 console.  For example, you could view all tables found in `Sheet1`
 with the following command:
 
-.. code-block:: bash
+.. code-block::
 
     $ eparse -f <path_to_files> -o stdout:/// parse -s "Sheet1"
 
@@ -176,7 +176,7 @@ eparse uses `pandas <https://github.com/pandas-dev/pandas>`_
 to handle table data.  You can view larger tables without truncation
 using the ``-t`` flag as follows:
 
-.. code-block:: bash
+.. code-block::
 
     $ eparse -t -f <path_to_files> -o stdout:/// parse -s "Sheet1"
 
@@ -184,7 +184,7 @@ Data in table format is useful for human viewing, but a serialized
 form is better for data interfacing.  Serialize your output with
 the ``-z`` flag as follows:
 
-.. code-block:: bash
+.. code-block::
 
     $ eparse -t -f <path_to_files> -o stdout:/// parse -z
 
@@ -211,7 +211,7 @@ interface.
 To create a `SQLite3 <https://github.com/sqlite/sqlite>`_ database
 with your parsed Excel data, use the following command:
 
-.. code-block:: bash
+.. code-block::
 
     $ mkdir .files
     $ eparse -f <path_to_files> -o sqlite3:/// parse -z
@@ -223,7 +223,7 @@ before running this command, as shown.
 
 You can also specify a path and filename of your choosing, like so:
 
-.. code-block:: bash
+.. code-block::
 
     $ mkdir .files
     $ eparse -f <path_to_files> -o sqlite3:///path/filename.db parse -z
@@ -240,7 +240,7 @@ To use a ``postgresql`` database as the source and/or destination
 of your data, you would supply an ``--input`` and/or ``--output``
 endpoint to the tool as follows:
 
-.. code-block:: bash
+.. code-block::
 
     $ eparse -o postgres://user:password@host:port/db_name ...
 
@@ -258,7 +258,7 @@ the database.
 For example, query distinct column header names from a generated
 ``SQLite3`` database as follows:
 
-.. code-block:: bash
+.. code-block::
 
     $ eparse -i sqlite3:///.files/<db_file> -o stdout:/// query -m get_c_header
                    c_header  Total Rows  Data Types  Distinct Values
@@ -272,14 +272,14 @@ found, including total rows, unique data types, and distinct values.
 
 You can also get raw un-truncated data as follows:
 
-.. code-block:: bash
+.. code-block::
 
     $ eparse -t -i sqlite3:///.files/<db_file> -o stdout:/// query
 
 Filtering data on content is easy.  Use the ``--filter`` option as
 follows:
 
-.. code-block:: bash
+.. code-block::
 
     $ eparse -i sqlite3:///.files/<db_file> -o stdout:/// query --filter f_name "somefile.xlsx"
 
@@ -308,7 +308,7 @@ Filters are applied to the ORM fields like so:
 Queried data can even be stored into a new database for creating
 curated data subsets, as follows:
 
-.. code-block:: bash
+.. code-block::
 
     $ eparse -i sqlite3:///.files/<db_file> \
              -o sqlite3:///.files/<subq_db_file> \
@@ -318,7 +318,7 @@ Since database files the tool generates when using `sqlite3:///` are
 ``SQLite`` native, you can also use `SQLite` database client tools
 and execute raw SQL like so:
 
-.. code-block:: bash
+.. code-block::
 
     $ sudo apt-get install -y sqlite3-tools
     $ sqlite3 .files/<db_file>
@@ -338,7 +338,7 @@ eparse wouldn't be a solid tool without the ability to migrate your
 eparse databases for future code changes.  You can apply migrations
 that ship with future versions of eparse as follows:
 
-.. code-block:: bash
+.. code-block::
 
     $ eparse -i sqlite3:///.files/<db_file> migrate -m <migration>
     applied <migration>
@@ -352,7 +352,7 @@ Unstructured
 ============
 If you would like to use eparse to partition xls[x] files alongside unstructured, you can do so with our contributed `partition` and `partition_xlsx` modules. Simply import the `partition` function from `eparse.contrib.unstructured.partition` and use it instead of `partition` from `unstructured.partition.auto` like so:
 
-.. code-block:: python
+.. code-block::
 
     from eparse.contrib.unstructured.partition import partition
 

@@ -105,7 +105,7 @@ You can view supported CLI commands and usage with ``--help`` as follows:
 
 You can also use eparse from python like so:
 
-.. code-block:: python
+.. code-block::
 
     from eparse.core import get_df_from_file
 

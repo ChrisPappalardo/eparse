@@ -22,6 +22,7 @@ TableRef = Tuple[int, int, str, str]  # r, c, excel RC, value
 def df_find_tables(
     df: pd.DataFrame,
     loose: bool = False,
+    na_depth: int = 1
 ) -> List[TableRef]:
     '''
     finds table corners in a dataframe
@@ -33,14 +34,34 @@ def df_find_tables(
     for r in range(df.shape[0]):
         # for each col
         for c in range(df.shape[1]):
+
             isna_left = True if c == 0 else pd.isna(df.at[r, (c - 1)])
-            isna_above = True if r == 0 else pd.isna(df.at[(r - 1), c])
+            try:
+                isna_above = True if r == 0 else all(
+                    pd.isna(df.at[(r - 1), c+i]) for i in range(0, na_depth))
+            except Exception:
+                isna_above = True if r == 0 else pd.isna(df.at[(r - 1), c])
             isna_value = pd.isna(df.at[r, c])
+            
+            try:
+                isghost_corner = isna_value and not all(
+                    pd.isna(df.at[r, c + i]) for i in range(0, na_depth))
+            except Exception:
+                isghost_corner = False
 
             try:
-                isna_right = pd.isna(df.at[r, (c + 1)])
-                isna_down = pd.isna(df.at[(r + 1), c])
-                isna_corner = pd.isna(df.at[(r + 1), (c + 1)])
+                isna_right = all(
+                    pd.isna(
+                        df.at[r, (c+1+i)]
+                        ) for i in range(0, na_depth))
+                isna_down = all(
+                    pd.isna(
+                        df.at[(r+1+i), c]
+                        ) for i in range(0, na_depth))
+                isna_corner = all(
+                    pd.isna(
+                        df.at[(r+1+i), (c+1+i)]
+                        ) for i in range(0, na_depth))
 
                 # ensure a 2x2 sparse table
                 min_size = any(
@@ -64,7 +85,10 @@ def df_find_tables(
             except Exception:
                 min_size = False
 
-            if all([isna_left, isna_above, not isna_value, min_size]):
+            if all([isna_left,
+                    isna_above,
+                    not isna_value or isghost_corner,
+                    min_size]):
                 result.append(
                     (
                         r,

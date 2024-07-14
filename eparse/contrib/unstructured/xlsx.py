@@ -3,13 +3,7 @@
 from tempfile import SpooledTemporaryFile
 from typing import IO, BinaryIO, List, Optional, Union, cast
 
-from eparse.core import (
-    df_serialize_table,
-    get_df_from_file,
-    get_table_digest,
-)
 import lxml.html
-
 from unstructured.documents.elements import (
     DataSourceMetadata,
     Element,
@@ -25,12 +19,13 @@ from unstructured.partition.common import (
     spooled_to_bytes_io_if_needed,
 )
 
+from eparse.core import df_serialize_table, get_df_from_file, get_table_digest
 
 _eparse_modes = (
-    'eparse',
-    'digest',
-    'table-digest',
-    'unstructured',
+    "eparse",
+    "digest",
+    "table-digest",
+    "unstructured",
 )
 
 

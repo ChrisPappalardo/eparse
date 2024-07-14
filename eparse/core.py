@@ -4,6 +4,7 @@
 excel parser core module
 """
 
+from io import StringIO
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import pandas as pd
@@ -312,7 +313,7 @@ def html_to_df(
     """
 
     return pd.read_html(
-        html,
+        StringIO(html),
         header=None,
         index_col=None,
     )

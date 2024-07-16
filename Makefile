@@ -1,4 +1,4 @@
-.PHONY: clean clean-build clean-pyc clean-test coverage dist docs help install lint lint/flake8 lint/black
+.PHONY: clean clean-build clean-pyc clean-test coverage dist docs help install lint lint/black lint/flake8 pre-commit test test-all
 .DEFAULT_GOAL := help
 
 define BROWSER_PYSCRIPT

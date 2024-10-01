@@ -361,6 +361,45 @@ If you would like to use eparse to partition xls[x] files alongside unstructured
 Valid `eparse_mode` settings are available in `eparse.contrib.unstructured.xlsx._eparse_modes`.
 
 
+Development
+===========
+Clone the repo:
+
+.. code-block::
+
+    $ git clone https://github.com/ChrisPappalardo/eparse.git
+
+Install devtest requirements and the package in editable mode:
+
+.. code-block::
+
+    $ pip install -r requirements.txt
+    $ pip install -e .
+
+Run unit tests:
+
+.. code-block::
+
+    $ make test
+
+Run the linter:
+
+.. code-block::
+
+    $ make lint
+
+Install pre-commit:
+
+.. code-block::
+
+    $ pre-commit install
+
+Run pre-commit:
+
+.. code-block::
+
+    $
+
 Contributing
 ============
 As an open-source project, contributions are always welcome. Please see `Contributing <CONTRIBUTING.rst>`_ for more information.

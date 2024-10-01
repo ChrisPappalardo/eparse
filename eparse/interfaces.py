@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 excel parser interfaces
-'''
+"""
 
+import importlib
+import re
 from abc import abstractmethod
 from collections.abc import Iterable, Mapping
 from datetime import datetime
-import importlib
 from pprint import PrettyPrinter
-import re
 from typing import Dict, Optional
 from uuid import uuid4
 
@@ -19,23 +19,22 @@ from peewee import (
     CharField,
     DatabaseProxy,
     DateTimeField,
-    fn,
     IntegerField,
     Model,
     PostgresqlDatabase,
     SqliteDatabase,
+    fn,
 )
 
 from .core import html_to_serialized_data
-
 
 DATABASE = DatabaseProxy()
 
 
 class ExcelParse(Model):
-    '''
+    """
     excel parse model
-    '''
+    """
 
     id = AutoField()
     row = IntegerField()
@@ -52,26 +51,26 @@ class ExcelParse(Model):
 
     @classmethod
     def get_queryset(cls, *args, **kwargs):
-        '''
+        """
         return queryset with filters applied
-        '''
+        """
 
         query = cls.filter(**kwargs)
         return pd.DataFrame(query.dicts())
 
     @classmethod
     def get_column(cls, column, *args, **kwargs):
-        '''
+        """
         return distinct values from column with aggregations
-        '''
+        """
 
         query = (
             cls.filter(**kwargs)
             .select(
                 getattr(cls, column),
-                fn.COUNT(cls.id).alias('Total Rows'),
-                fn.COUNT(cls.type.distinct()).alias('Data Types'),
-                fn.COUNT(cls.value.distinct()).alias('Distinct Values'),
+                fn.COUNT(cls.id).alias("Total Rows"),
+                fn.COUNT(cls.type.distinct()).alias("Data Types"),
+                fn.COUNT(cls.value.distinct()).alias("Distinct Values"),
             )
             .group_by(getattr(cls, column))
         )
@@ -79,20 +78,20 @@ class ExcelParse(Model):
 
     class Meta:
         database = DATABASE
-        indexes = ((('f_name', 'sheet', 'name'), False),)
+        indexes = ((("f_name", "sheet", "name"), False),)
 
 
 class BaseInterface:
-    '''
+    """
     base interface class
-    '''
+    """
 
-    endpoint = ''
-    user = ''
-    password = ''
-    host = ''
+    endpoint = ""
+    user = ""
+    password = ""
+    host = ""
     port = 0
-    name = ''
+    name = ""
 
     Database = None
     Model = None
@@ -104,42 +103,42 @@ class BaseInterface:
 
     @abstractmethod
     def input(self):
-        '''
+        """
         from_X override with input handler
-        '''
+        """
 
         pass
 
     @abstractmethod
     def output(self, data: pd.DataFrame, obj: Dict) -> pd.DataFrame:
-        '''
+        """
         to_X override with output handler
-        '''
+        """
 
         pass
 
     @abstractmethod
     def migrate(self, migration: str):
-        '''
+        """
         override with migration handler
-        '''
+        """
 
         pass
 
     @classmethod
     def parse_uri(self, uri: str) -> Dict:
-        '''
+        """
         parse eparse URI string
-        '''
+        """
 
-        patt = r'^(?P<endpoint>.*)://(?P<user>.*?)(:(?P<password>.*?))?(@(?P<host>.*?)(:(?P<port>.*?))?)?/(?P<name>.*)?$'  # noqa
+        patt = r"^(?P<endpoint>.*)://(?P<user>.*?)(:(?P<password>.*?))?(@(?P<host>.*?)(:(?P<port>.*?))?)?/(?P<name>.*)?$"  # noqa
         return re.match(patt, uri).groupdict()
 
 
 class NullInterface(BaseInterface):
-    '''
+    """
     null interface
-    '''
+    """
 
     def input(self):
         return pd.DataFrame()
@@ -152,9 +151,9 @@ class NullInterface(BaseInterface):
 
 
 class StdoutInterface(BaseInterface):
-    '''
+    """
     stdout interface
-    '''
+    """
 
     def input(self):
         return pd.DataFrame()
@@ -167,15 +166,15 @@ class StdoutInterface(BaseInterface):
 
 
 class BaseDatabaseInterface(BaseInterface):
-    '''
+    """
     base database interface
-    '''
+    """
 
     @abstractmethod
     def initialize(self, *args, **kwargs):
-        '''
+        """
         override with db-specific initialization
-        '''
+        """
 
         pass
 
@@ -185,8 +184,8 @@ class BaseDatabaseInterface(BaseInterface):
         # if no explicit method is available, try get_column
         if m is None:
             m = self.Model.get_column
-            patt = r'^(?:get_)?(?P<column>.*)$'
-            kwargs['column'] = re.match(patt, method).group('column')
+            patt = r"^(?:get_)?(?P<column>.*)$"
+            kwargs["column"] = re.match(patt, method).group("column")
 
         self.initialize(DATABASE)
         DATABASE.connect()
@@ -195,9 +194,9 @@ class BaseDatabaseInterface(BaseInterface):
 
     def output(self, data, *args, **kwargs):
         # skip empty data
-        if hasattr(data, 'empty') and data.empty:
+        if hasattr(data, "empty") and data.empty:
             return
-        elif not hasattr(data, 'empty') and not data:
+        elif not hasattr(data, "empty") and not data:
             return
 
         # check that data is serialized
@@ -205,7 +204,7 @@ class BaseDatabaseInterface(BaseInterface):
             assert isinstance(data, Iterable)
             assert isinstance(data[0], Mapping)
         except Exception:
-            raise ValueError('bad data - did you serialize it first?')
+            raise ValueError("bad data - did you serialize it first?")
 
         self.initialize(DATABASE)
         DATABASE.connect()
@@ -219,10 +218,10 @@ class BaseDatabaseInterface(BaseInterface):
 
     def migrate(self, migration):
         try:
-            m = importlib.import_module('eparse.migrations')
+            m = importlib.import_module("eparse.migrations")
             migration_fcn = getattr(m, migration)
         except AttributeError:
-            msg = f'migration error - there is no {migration}'
+            msg = f"migration error - there is no {migration}"
             raise AttributeError(msg)
 
         self.initialize(DATABASE)
@@ -231,24 +230,24 @@ class BaseDatabaseInterface(BaseInterface):
 
 
 class Sqlite3Interface(BaseDatabaseInterface):
-    '''
+    """
     sqlite3 interface
-    '''
+    """
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         if not self.name:
-            self.name = f'.files/{uuid4()}.db'
+            self.name = f".files/{uuid4()}.db"
 
     def initialize(self, db):
         db.initialize(SqliteDatabase(self.name))
 
 
 class PostgresInterface(BaseDatabaseInterface):
-    '''
+    """
     postgres interface
-    '''
+    """
 
     def initialize(self, db):
         db.initialize(
@@ -263,9 +262,9 @@ class PostgresInterface(BaseDatabaseInterface):
 
 
 class HtmlInterface(Sqlite3Interface):
-    '''
+    """
     html data interface using sqlite3
-    '''
+    """
 
     def __init__(self, *args, html: Optional[str] = None, **kwargs):
         super().__init__(*args, **kwargs)
@@ -275,20 +274,20 @@ class HtmlInterface(Sqlite3Interface):
 
 
 def i_factory(uri, Model=None, **kwargs):
-    '''
+    """
     return interface object based on uri
-    '''
+    """
 
-    if uri.startswith('null'):
+    if uri.startswith("null"):
         return NullInterface(uri, **kwargs)
-    elif uri.startswith('stdout'):
+    elif uri.startswith("stdout"):
         return StdoutInterface(uri, **kwargs)
-    elif uri.startswith('sqlite3'):
+    elif uri.startswith("sqlite3"):
         return Sqlite3Interface(uri, Model, **kwargs)
-    elif uri.startswith('postgres'):
+    elif uri.startswith("postgres"):
         return PostgresInterface(uri, Model, **kwargs)
-    elif uri.startswith('html'):
-        _uri = uri.replace('html', 'sqlite3')
+    elif uri.startswith("html"):
+        _uri = uri.replace("html", "sqlite3")
         return HtmlInterface(_uri, Model, **kwargs)
 
-    raise ValueError(f'{uri} is not a recognized endpoint')
+    raise ValueError(f"{uri} is not a recognized endpoint")

@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code repository
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        uses: ./.github/actions/install
+      - name: Run pre-commit
+        run: pre-commit run --all-files
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10"]
+    steps:
+      - name: Checkout code repository
+        uses: actions/checkout@v4
+      - name: Install dependencies
+        uses: ./.github/actions/install
+      - name: Run unit tests
+        run: pytest
+        env:
+          python-version: ${{ matrix.python-version }}

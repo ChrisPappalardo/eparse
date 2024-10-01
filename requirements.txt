@@ -1,15 +1,15 @@
 # base
-click==8.1.3
-openpyxl==3.1.2
-lxml==4.9.3
-pandas==2.0.1
-peewee==3.16.2
-unstructured==0.10.5
+click==8.1.7
+openpyxl==3.1.5
+lxml==5.2.2
+pandas==2.2.2
+peewee==3.17.6
 
 # devtest
-black==23.3.0
-coverage==7.2.7
-flake8==6.0.0
-ipython==8.12.2
-pytest==7.3.1
-tox==4.6.0
+black>=23.3.0
+coverage>=7.2.7
+flake8>=6.0.0
+ipython>=8.12.2
+pre-commit>=3.7.1
+pytest>=7.3.1
+tox>=4.6.0

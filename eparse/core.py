@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
 
-'''
+"""
 excel parser core module
-'''
+"""
 
+from io import StringIO
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
-from openpyxl.utils.cell import get_column_letter
 import pandas as pd
-
+from openpyxl.utils.cell import get_column_letter
 
 TableRef = Tuple[int, int, str, str]  # r, c, excel RC, value
 
@@ -23,9 +23,9 @@ def df_find_tables(
     df: pd.DataFrame,
     loose: bool = False,
 ) -> List[TableRef]:
-    '''
+    """
     finds table corners in a dataframe
-    '''
+    """
 
     result = []
 
@@ -69,7 +69,7 @@ def df_find_tables(
                     (
                         r,
                         c,
-                        f'{get_column_letter(c+1)}{r+1}',
+                        f"{get_column_letter(c+1)}{r+1}",
                         str(df.at[r, c]),
                     )
                 )
@@ -78,9 +78,9 @@ def df_find_tables(
 
 
 def _is_rowspan(df: pd.DataFrame, r: int, c: int) -> bool:
-    '''
+    """
     detect a rowspan label
-    '''
+    """
 
     try:
         isna_right = pd.isna(df.at[r, (c + 1)])
@@ -93,9 +93,9 @@ def _is_rowspan(df: pd.DataFrame, r: int, c: int) -> bool:
 
 
 def _has_empty_corner(df: pd.DataFrame, r: int, c: int) -> bool:
-    '''
+    """
     detect an empty corner
-    '''
+    """
 
     try:
         isna_above = pd.isna(df.at[(r - 1), c])
@@ -115,9 +115,9 @@ def df_parse_table(
     na_tolerance_c: int = 1,
     na_strip: bool = True,
 ) -> pd.DataFrame:
-    '''
+    """
     extract a table from a dataframe for a given r, c position
-    '''
+    """
 
     # make reference adjustments
     if _is_rowspan(df, r, c):
@@ -161,21 +161,21 @@ def df_parse_table(
 
 
 def df_normalize_data(data: Dict) -> Dict:
-    '''
+    """
     normalize table data
-    '''
+    """
 
     result = {}
-    ints = ('row', 'column')
+    ints = ("row", "column")
     strs = (
-        'value',
-        'type',
-        'c_header',
-        'r_header',
-        'excel_RC',
-        'name',
-        'sheet',
-        'f_name',
+        "value",
+        "type",
+        "c_header",
+        "r_header",
+        "excel_RC",
+        "name",
+        "sheet",
+        "f_name",
     )
 
     for k in ints:
@@ -186,9 +186,9 @@ def df_normalize_data(data: Dict) -> Dict:
         if k in data:
             result[k] = str(data[k])
 
-    if 'timestamp' in data:
-        if isinstance(data['timestamp'], pd.Timestamp):
-            result['timestamp'] = data['timestamp'].to_pydatetime()
+    if "timestamp" in data:
+        if isinstance(data["timestamp"], pd.Timestamp):
+            result["timestamp"] = data["timestamp"].to_pydatetime()
 
     return result
 
@@ -197,9 +197,9 @@ def df_serialize_table(
     df: pd.DataFrame,
     **other_data,
 ) -> List[Dict]:
-    '''
+    """
     serialize table into a list of dicts with meta data
-    '''
+    """
 
     column_header = df.iloc[0]
     row_header = df.iloc[:, 0]
@@ -213,13 +213,13 @@ def df_serialize_table(
             result.append(
                 df_normalize_data(
                     {
-                        'row': r,
-                        'column': c,
-                        'value': df.iloc[r, c],
-                        'type': type(df.iloc[r, c]),
-                        'c_header': column_header.iloc[c],
-                        'r_header': row_header.iloc[r],
-                        'excel_RC': f'{get_column_letter(_c+1)}{_r+1}',
+                        "row": r,
+                        "column": c,
+                        "value": df.iloc[r, c],
+                        "type": type(df.iloc[r, c]),
+                        "c_header": column_header.iloc[c],
+                        "r_header": row_header.iloc[r],
+                        "excel_RC": f"{get_column_letter(_c+1)}{_r+1}",
                         **other_data,
                     }
                 )
@@ -237,9 +237,9 @@ def get_df_from_file(
     na_tolerance_c: int = 1,
     na_strip: bool = True,
 ):
-    '''
+    """
     helper function to yield tables from a file
-    '''
+    """
 
     f = pd.read_excel(
         io,
@@ -280,26 +280,26 @@ def get_table_digest(
     filename: Optional[str] = None,
     sheet: Optional[str] = None,
 ) -> str:
-    '''
+    """
     generate a digest that describes a serialized table
-    '''
+    """
 
     df = pd.DataFrame.from_records(serialized_table)
-    rows = len(df['row'].unique())
-    cols = len(df['column'].unique())
-    c_headers = df['c_header'].unique()
-    r_headers = df['r_header'].unique()
-    types = df['type'].unique()
+    rows = len(df["row"].unique())
+    cols = len(df["column"].unique())
+    c_headers = df["c_header"].unique()
+    r_headers = df["r_header"].unique()
+    types = df["type"].unique()
 
-    sheet_str = f' in sheet {sheet}' if sheet else ''
-    file_str = f' of Excel file {filename}' if filename else ''
+    sheet_str = f" in sheet {sheet}" if sheet else ""
+    file_str = f" of Excel file {filename}" if filename else ""
     type_str = f' {", ".join([str(t) for t in types])} type(s)'
 
     digest = (
-        f'{table_name} is a table{sheet_str}{file_str} '
+        f"{table_name} is a table{sheet_str}{file_str} "
         f'with {cols} column(s) having names like {", ".join(c_headers)} '
         f'and {rows} row(s) having names like {", ".join(r_headers)} '
-        f'and contains {rows*cols} cells of{type_str}'
+        f"and contains {rows*cols} cells of{type_str}"
     )
 
     return digest
@@ -308,12 +308,12 @@ def get_table_digest(
 def html_to_df(
     html: str,
 ) -> pd.DataFrame:
-    '''
+    """
     helper function to return pandas dataframe from html
-    '''
+    """
 
     return pd.read_html(
-        html,
+        StringIO(html),
         header=None,
         index_col=None,
     )
@@ -323,8 +323,8 @@ def html_to_serialized_data(
     html: str,
     **other_data,
 ) -> List[Dict]:
-    '''
+    """
     helper function to return serialized data from html
-    '''
+    """
 
     return df_serialize_table(html_to_df(html)[0], **other_data)

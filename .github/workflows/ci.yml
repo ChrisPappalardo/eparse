@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code repository
         uses: actions/checkout@v4
       - name: Install dependencies
-        uses: ./.github/actions/install.yml
+        uses: ./.github/actions/install
       - name: Run pre-commit
         run: pre-commit run --all-files
 
@@ -26,7 +26,7 @@ jobs:
       - name: Checkout code repository
         uses: actions/checkout@v4
       - name: Install dependencies
-        uses: ./.github/actions/install.yml
+        uses: ./.github/actions/install
       - name: Run unit tests
         run: pytest
         env:

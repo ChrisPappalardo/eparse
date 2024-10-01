@@ -11,8 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code repository and install
-        uses: actions/checkout@v4
-        uses: ./.github/actions/install.yml
+        - name: Checkout code repository
+          uses: actions/checkout@v4
+        - name: Install dependencies
+          uses: ./.github/actions/install.yml
       - name: Run pre-commit
         run: pre-commit run --all-files
 
@@ -23,8 +25,10 @@ jobs:
         python-version: ["3.10"]
     steps:
       - name: Checkout code repository and install
-        uses: actions/checkout@v4
-        uses: ./.github/actions/install.yml
+        - name: Checkout code repository
+          uses: actions/checkout@v4
+        - name: Install dependencies
+          uses: ./.github/actions/install.yml
       - name: Run unit tests
         run: pytest
         env:

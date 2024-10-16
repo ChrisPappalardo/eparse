@@ -117,6 +117,20 @@ You can also use eparse from python like so:
     106  45107         32801.363072  45199         841656.13896
     ...
 
+For example, to find and print cells from any "Principal Repayment" columns in excel files in the "tests" directory, you would:
+
+.. code-block::
+
+    from pathlib import Path
+    from eparse.core import get_df_from_file, df_serialize_table
+
+    for f in Path("tests").iterdir():
+        if f.is_file() and "xls" in f.name:
+            for table in get_df_from_file(f):
+                for row in df_serialize_table(table[0]):
+                    if row["c_header"] == "Principal Repayment":
+                        print(row)
+
 
 Scan
 ----

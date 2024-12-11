@@ -412,7 +412,7 @@ Run pre-commit:
 
 .. code-block::
 
-    $
+    $ pre-commit run --all-files
 
 Contributing
 ============

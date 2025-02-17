@@ -32,6 +32,7 @@ dependencies = [
 [project.optional-dependencies]
 test = [
   "black>=23.3.0",
+  "build>=1.2.2.post1",
   "coverage>=7.2.7",
   "flake8>=6.0.0",
   "ipython>=8.12.2",
@@ -49,4 +50,4 @@ Source = "https://github.com/ChrisPappalardo/eparse"
 fail_under = 80
 
 [tool.setuptools]
-packages = ["eparse", "contrib"]
+packages = ["eparse"]

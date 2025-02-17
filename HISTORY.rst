@@ -2,6 +2,17 @@
 History
 =======
 
+0.8.0 (2025-02-17)
+==================
+
+* Replace setup with pyproject
+
+0.7.4 (2024-03-23)
+==================
+
+* Added na_tolerance feature
+* Update CI/CD workflow
+
 0.7.3 (2023-08-23)
 ==================
 

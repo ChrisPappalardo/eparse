@@ -30,6 +30,13 @@ def test_df_find_tables_loose(xlsx):
     assert (102, 2, "C103", "Schedule of Principal Repayments:") in t
 
 
+def test_df_find_tables_na_depth(xlsx):
+    t = df_find_tables(xlsx, na_depth=2)
+    assert len(t) == 17
+    assert (1, 2, 'C2', 'nan') in t
+    assert (25, 2, 'C26', 'nan') in t
+
+
 def test_df_parse_table(xlsx):
     t = df_parse_table(xlsx, 102, 2)
     assert t.shape == (11, 8)

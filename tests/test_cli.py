@@ -28,7 +28,9 @@ def test_scan():
 
 def test_parse():
     runner = CliRunner()
-    result = runner.invoke(main, ["-f", "tests/", "parse", "--exclude-nested"], **kwargs)
+    result = runner.invoke(
+        main, ["-f", "tests/", "parse", "--exclude-nested"], **kwargs
+    )
     assert result.exit_code == 0
     assert "eparse_unit_test_data" in result.output
 

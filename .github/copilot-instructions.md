@@ -31,7 +31,7 @@
 - Install: `pip install psycopg2-binary`
 
 ## CI and Validation
-- **CI runs on every push and PR**: runs `make lint`, `make pre-commit`, and `make test` (Python 3.10).
+- **CI runs on every push and PR**: runs `make lint`, `make pre-commit`, and `make test`.
 - **All code must pass lint and tests locally before PR.**
 
 ## Environment

@@ -70,3 +70,15 @@ def xlsx():
         header=None,
         index_col=None,
     )
+
+
+@pytest.fixture
+def xlss_nested():
+    """
+    excel file with nested table fixture
+    """
+    return pd.read_excel(
+        "tests/eparse_nested_test_data.xlsx",
+        header=None,
+        index_col=None,
+    )

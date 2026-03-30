@@ -14,6 +14,9 @@ from eparse.core import (
     get_table_digest,
     html_to_df,
     html_to_serialized_data,
+    _get_table_bounds,
+    _is_inside_bounds,
+    _filter_nested_tables,
 )
 
 
@@ -48,6 +51,52 @@ def test_df_parse_table_na_tolerance(xlsx):
         na_strip=True,
     )
     assert t.shape == (9, 8)
+
+
+def test_df_parse_nested_subtables():
+    tables = list(
+        get_df_from_file("tests/eparse_nested_test_data.xlsx", exclude_nested=False)
+    )
+    assert len(tables) == 2
+
+
+def test_df_parse_not_nested_subtables():
+    tables = list(
+        get_df_from_file("tests/eparse_nested_test_data.xlsx", exclude_nested=True)
+    )
+    assert len(tables) == 1
+
+
+def test_get_table_bounds(xlss_nested):
+    bounds = _get_table_bounds(xlss_nested, 4, 3)
+    r_start, r_end, c_start, c_end = bounds
+
+    assert r_start == 4
+    assert c_start == 3
+    assert c_end > c_start
+    assert r_end > r_start
+
+
+def test_is_inside_bounds():
+    candidate = (10, 5, "F11", "value")
+    bounds = (5, 15, 3, 8)
+
+    assert _is_inside_bounds(candidate, bounds) is True
+
+    outside = (2, 2, "C3", "value")
+    assert _is_inside_bounds(outside, bounds) is False
+
+
+def test_filter_nested_tables(xlss_nested):
+    candidates = [
+        (4, 3, "D5", "ID"),
+        (12, 7, "H13", "SubID"),
+    ]
+
+    filtered = _filter_nested_tables(candidates, xlss_nested)
+
+    assert len(filtered) == 1
+    assert filtered[0][2] == "D5"
 
 
 def test_df_serialize_table(xlsx):

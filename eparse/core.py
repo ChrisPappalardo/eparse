@@ -77,6 +77,83 @@ def df_find_tables(
     return result
 
 
+def _get_table_bounds(df: pd.DataFrame, r: int, c: int) -> Tuple[int, int, int, int]:
+    """
+    calculate complete table zone from top-left corner
+
+    returns (r_start, r_end, c_start, c_end)
+    """
+    r_start = r
+    c_start = c
+
+    # find last column by checking first row
+    c_end = c + 1
+    for col in range(c + 1, df.shape[1]):
+        if pd.isna(df.at[r, col]):
+            break
+        c_end = col + 1
+
+    # find last row where any cell in column range has data
+    r_end = r + 1
+    for row in range(r + 1, df.shape[0]):
+        row_empty = all(pd.isna(df.at[row, col]) for col in range(c_start, c_end))
+        if row_empty:
+            break
+        r_end = row + 1
+
+    return (r_start, r_end, c_start, c_end)
+
+
+def _is_inside_bounds(candidate: TableRef, bounds: Tuple[int, int, int, int]) -> bool:
+    """
+    check if candidate table is inside given bounds
+    """
+    r, c, _, _ = candidate
+    r_start, r_end, c_start, c_end = bounds
+
+    return r_start < r < r_end and c_start < c < c_end
+
+
+def _filter_nested_tables(
+    candidates: List[TableRef], df: pd.DataFrame
+) -> List[TableRef]:
+    """
+    filter out tables that are inside larger tables
+
+    larger tables reserve their zone first, nested tables are excluded
+    """
+    if len(candidates) <= 1:
+        return candidates
+
+    # calculate zones and sizes for all candidates
+    zones_data = []
+    for candidate in candidates:
+        r, c, _, _ = candidate
+        bounds = _get_table_bounds(df, r, c)
+        r_start, r_end, c_start, c_end = bounds
+        size = (r_end - r_start) * (c_end - c_start)
+        zones_data.append((candidate, bounds, size))
+
+    # sort by size descending (largest tables first)
+    zones_data.sort(key=lambda x: x[2], reverse=True)
+
+    # filter: first tables reserve zone, check if later tables are nested
+    filtered = []
+    occupied = []
+
+    for candidate, bounds, size in zones_data:
+        is_nested = any(_is_inside_bounds(candidate, occ) for occ in occupied)
+
+        if not is_nested:
+            filtered.append(candidate)
+            occupied.append(bounds)
+
+    # restore original order by position (top-left first)
+    filtered.sort(key=lambda x: (x[0], x[1]))
+
+    return filtered
+
+
 def _is_rowspan(df: pd.DataFrame, r: int, c: int) -> bool:
     """
     detect a rowspan label
@@ -236,6 +313,7 @@ def get_df_from_file(
     na_tolerance_r: int = 1,
     na_tolerance_c: int = 1,
     na_strip: bool = True,
+    exclude_nested: bool = False,
 ):
     """
     helper function to yield tables from a file
@@ -254,6 +332,10 @@ def get_df_from_file(
 
     for s in f.keys():
         tables = df_find_tables(f[s], loose)
+
+        # apply nested table filter if enabled
+        if exclude_nested:
+            tables = _filter_nested_tables(tables, f[s])
 
         for r, c, excel_RC, name in tables:
             if table is not None and table.lower() not in name.lower():

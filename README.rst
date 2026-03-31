@@ -22,6 +22,7 @@ Features
 * Command-line interface
 * Recursive Excel file discovery
 * Sub-tabular data extraction (logical tables)
+* Configurable table parsing algorithm
 * SQLite and PostgreSQL database interfaces
 * CLI query tool
 * Summary data metrics
@@ -165,6 +166,11 @@ corners and the dense vs. sparse criterion can be controlled with
 the ``--loose`` flag.  eparse can also tolerate a user-specified number
 of NA row and column cells and still consider the table to be unbroken
 with the ``--nacount`` arg.
+
+Sometimes identified tables have nested tables, which are tables that appear
+within the bounds of another table in an Excel sheet.  By default, nested tables
+that meet the table algorithm are included by default.  If you want to exclude them,
+you can do so with the ``--exclude-nested`` option to the parse command.
 
 eparse was written to accomodate various types of output formats and
 endpoints, including ``null:///``, ``stdout:///``, ``sqlite3:///db_name``,

@@ -270,7 +270,13 @@ def scan(ctx, number, sheet, tables):
     default=0,
     help="allow for this many NA values when spanning rows and columns",
 )
-def parse(ctx, sheet, serialize, table, nacount):
+@click.option(
+    "--exclude-nested",
+    is_flag=True,
+    default=False,
+    help="exclude nested tables from output (only top-level tables)",
+)
+def parse(ctx, sheet, serialize, table, nacount, exclude_nested):
     """
     parse table(s) found in sheet for target(s)
     """
@@ -301,6 +307,7 @@ def parse(ctx, sheet, serialize, table, nacount):
                     table,
                     ctx.obj["na_tolerance_r"],
                     ctx.obj["na_tolerance_c"],
+                    exclude_nested=exclude_nested,
                 ):
                     if ctx.obj["verbose"]:
                         m = "{} table {} {} found at {} in {}"

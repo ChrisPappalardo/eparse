@@ -22,7 +22,7 @@ readme = "README.rst"
 requires-python = ">=3.8"
 
 # Add CLI entry point
-scripts = { eparse = "eparse.cli:main" }
+scripts = { eparse = "eparse.cli:entry_point" }
 
 dependencies = [
     "click>=8.0.0",

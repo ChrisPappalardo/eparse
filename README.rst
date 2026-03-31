@@ -80,14 +80,6 @@ Usage
 eparse can be used as either a python library or from the command-line.
 You can view supported CLI commands and usage with ``--help`` as follows:
 
-
-Nested Table Extraction
-----------------------
-Nested tables are tables that appear within the bounds of another table in an Excel sheet. These are common in complex spreadsheets where a main table contains one or more sub-tables, often separated by empty rows or columns, or visually grouped together.
-
-eparse can automatically detect and extract these nested tables using the ``--extract-nested`` flag. When enabled, eparse will recursively search for tables within the detected table regions and output each as a separate logical table. This is useful for extracting all relevant data from sheets with complex, multi-level table structures.
-
-
 .. code-block::
 
     $ eparse --help
@@ -104,7 +96,6 @@ eparse can automatically detect and extract these nested tables using the ``--ex
     -r, --recursive    find files recursively
     -t, --truncate     truncate dataframe output
     -v, --verbose      increase output verbosity
-    --extract-nested   extract nested tables within tables
     --help             Show this message and exit.
 
     Commands:
@@ -159,28 +150,6 @@ Parse
 -----
 Excel files can be parsed as follows:
 
-Nested Table Extraction
-----------------------
-
-Nested tables are tables that appear within the bounds of another table in an Excel sheet. These are common in complex spreadsheets where a main table contains one or more sub-tables, often separated by empty rows or columns, or visually grouped together.
-
-eparse can automatically detect and extract these nested tables using the ``--extract-nested`` flag. When enabled, eparse will recursively search for tables within the detected table regions and output each as a separate logical table. This is useful for extracting all relevant data from sheets with complex, multi-level table structures.
-
-**CLI Example:**
-
-.. code-block::
-
-    $ eparse -f <path_to_files> --extract-nested parse
-
-When this flag is set, eparse will recursively search for and extract all nested tables within each detected table region, outputting each as a separate logical table.
-
-**When to use ``--extract-nested``:**
-- When you want to extract all tables, including sub-tables within larger tables
-- When nested tables contain important detail data that should not be missed
-
-- When your analysis requires only the main tables, not their embedded details
-
-
 .. code-block::
 
     $ eparse -v -f <path_to_files> parse
@@ -197,6 +166,11 @@ corners and the dense vs. sparse criterion can be controlled with
 the ``--loose`` flag.  eparse can also tolerate a user-specified number
 of NA row and column cells and still consider the table to be unbroken
 with the ``--nacount`` arg.
+
+Sometimes identified tables have nested tables, which are tables that appear
+within the bounds of another table in an Excel sheet.  By default, nested tables
+that meet the table algorithm are included by default.  If you want to exclude them,
+you can do so with the ``--exclude-nested`` option to the parse command.
 
 eparse was written to accomodate various types of output formats and
 endpoints, including ``null:///``, ``stdout:///``, ``sqlite3:///db_name``,

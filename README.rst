@@ -22,10 +22,10 @@ Features
 * Command-line interface
 * Recursive Excel file discovery
 * Sub-tabular data extraction (logical tables)
+* Configurable table parsing algorithm
 * SQLite and PostgreSQL database interfaces
 * CLI query tool
 * Summary data metrics
-* Nested table extraction (detects and extracts tables within tables)
 
 
 Installation

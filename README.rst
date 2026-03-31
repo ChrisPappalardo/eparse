@@ -425,6 +425,17 @@ Contributing
 As an open-source project, contributions are always welcome. Please see `Contributing <CONTRIBUTING.rst>`_ for more information.
 
 
+GitHub Copilot Skills
+=====================
+
+This repository provides two GitHub Copilot skills for automation:
+
+- **parse-cli**: Extract and list tables from Excel files using the eparse CLI.
+- **query-cli**: Query parsed Excel data from SQLite or PostgreSQL databases created by eparse.
+
+These skills can be invoked by Copilot when working in this repository. For more details, see `.github/skills/parse-cli/SKILL.md` and `.github/skills/query-cli/SKILL.md`.
+
+
 License
 =======
 eparse is licensed under the `MIT License <https://opensource.org/licenses/MIT>`_. See the `LICENSE <LICENSE>`_ file for more details.
